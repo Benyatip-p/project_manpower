@@ -28,7 +28,6 @@ const ApproveNavbar = ({ onToggleSidebar }) => {
             signOut();
           }
         } else {
-            // No email in storage, sign out
             signOut();
         }
 
@@ -55,7 +54,6 @@ const ApproveNavbar = ({ onToggleSidebar }) => {
         <div className="w-full px-8">
           <div className="flex justify-between items-center h-18">
 
-            {/* Left Side: Menu + Logo */}
             <div className="flex items-center gap-4 -ml-5">
               <button
                 onClick={onToggleSidebar}
@@ -85,7 +83,6 @@ const ApproveNavbar = ({ onToggleSidebar }) => {
               </Link>
             </div>
 
-            {/* Right Side: Notification and Profile */}
             <div className="flex items-center gap-3">
               <button
                 className="p-2 hover:bg-neutral-500 rounded-lg transition-colors active:scale-95 relative"

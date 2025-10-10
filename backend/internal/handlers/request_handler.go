@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Placeholder for ManpowerRequest model (Ensure this matches the keys sent by Frontend)
 type ManpowerRequest struct {
 	DocumentDate          string `json:"documentDate"`
 	Department            string `json:"department"` // Name
@@ -32,16 +31,13 @@ type ManpowerRequest struct {
 	SpecialQualifications string `json:"specialQualifications"`
 }
 
-// Helper function to parse DD/MM/YYYY to go time.Time
 func parseDate(dateStr string) (time.Time, error) {
 	return time.Parse("02/01/2006", dateStr)
 }
 
-// Helper function to convert lookup name to ID
 func lookupName(c *gin.Context, tableName, name string) (int, error) {
 	id, err := services.GetIDByName(tableName, name)
 	if err != nil {
-		// Log the error but send a user-friendly error response
 		log.Printf("Lookup Error: Failed to find ID for %s '%s': %v", tableName, name, err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid selection for %s: %s", tableName, name)})
 		return 0, err
@@ -56,11 +52,9 @@ func CreateManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// 1. --- Input Validation and ID Lookup ---
-	employeeID := "E003" // Assuming user@example.com is E003
-	docNumber := time.Now().Format("20060102-1") // Mock doc number
+	employeeID := "E003" 
+	docNumber := time.Now().Format("20060102-1") 
 	
-	// Convert Names (from Frontend) to IDs (for DB)
 	deptID, err := lookupName(c, "department", req.Department)
 	if err != nil { return }
 	
@@ -94,7 +88,6 @@ func CreateManpowerRequestHandler(c *gin.Context) {
 		return
 	}
     
-    // --- START AGE CONVERSION FIX: Convert string to int ---
     minAge, err := strconv.Atoi(req.AgeFrom)
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid value for Age From: '%s'", req.AgeFrom)})
@@ -106,9 +99,7 @@ func CreateManpowerRequestHandler(c *gin.Context) {
         c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid value for Age To: '%s'", req.AgeTo)})
         return
     }
-    // --- END AGE CONVERSION FIX ---
 
-	// 2. --- Database INSERT ---
 	query := `
 		INSERT INTO manpower_requests (
 			doc_number, employee_id, doc_date, requesting_dept_id, requesting_pos_id,
@@ -126,19 +117,19 @@ func CreateManpowerRequestHandler(c *gin.Context) {
 		docNumber,
 		employeeID,
 		docDate,
-		deptID, // ID
-		posID,  // ID
-		etID,   // ID
-		ctID,   // ID
-		rrID,   // ID
-		req.PositionId, // Code
-		req.PositionRequire, // Name (for redundant storage in MR table)
-		minAge, // CONVERTED INT
-		maxAge, // CONVERTED INT
-		genderID, // ID
-		natID,    // ID
-		expID,    // ID
-		eduID,    // ID
+		deptID, 
+		posID, 
+		etID,   
+		ctID,   
+		rrID,   
+		req.PositionId, 
+		req.PositionRequire, 
+		minAge, 
+		maxAge, 
+		genderID, 
+		natID,    
+		expID,    
+		eduID,    
 		req.SpecialQualifications,
 	).Scan(&newRequestID)
 

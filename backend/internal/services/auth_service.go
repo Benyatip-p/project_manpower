@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5" // <<< แก้ไขบรรทัดนี้
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var jwtSecret = []byte("YOUR_ULTRA_SECURE_SECRET_KEY")
@@ -17,7 +17,6 @@ func Authenticate(email, password string) (string, string, string, error) {
 	email = strings.ToLower(email)
 	var employeeID, storedPassword, roleName string
 
-	// ใช้ password แทน password_hash
 	query := `
         SELECT e.employee_id, e.password, r.role_name
         FROM employees e
@@ -35,7 +34,6 @@ func Authenticate(email, password string) (string, string, string, error) {
 		return "", "", "", errors.New("database error")
 	}
 
-	// เปรียบเทียบรหัสผ่านตรงๆ
 	if storedPassword != password {
 		log.Printf("Authentication failed for email %s: incorrect password", email)
 		return "", "", "", errors.New("authentication failed: invalid credentials")

@@ -5,20 +5,15 @@ const UserProfilePopup = ({ isOpen, onClose, userData }) => {
   if (!isOpen) return null;
 
   return (
-    // div นอกสุด: เป็นพื้นที่ Fixed เต็มจอ (inset-0) ที่มองไม่เห็น
-    // มีหน้าที่จับการคลิก (onClick={onClose}) เพื่อปิด Pop-up เมื่อคลิกนอกกล่องสีขาว
-    // **ไม่มีการใส่ bg-black หรือ bg-opacity ใดๆ**
     <div
       className="fixed inset-0 flex justify-center items-center z-50" 
       onClick={onClose} 
-      style={{ backgroundColor: 'transparent' }} // กำหนดให้โปร่งใสแบบชัดเจน
+      style={{ backgroundColor: 'transparent' }} 
     >
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-8 relative"
-        // ป้องกัน Event click จาก Pop-up ไปถึงด้านหลัง (onClick={onClose})
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header with Avatar */}
         <div className="flex items-center space-x-6 mb-6">
           <div className="w-20 h-20 rounded-full bg-amber-700 text-white flex items-center justify-center text-3xl font-semibold flex-shrink-0">
             {userData?.firstname?.charAt(0).toUpperCase() || '?'}
@@ -31,7 +26,6 @@ const UserProfilePopup = ({ isOpen, onClose, userData }) => {
           </div>
         </div>
 
-        {/* User Details */}
         <div className="space-y-4">
           <div className="flex justify-between text-sm text-gray-600 py-2 border-b border-gray-200">
             <span className="font-medium">แผนก</span>
@@ -51,7 +45,6 @@ const UserProfilePopup = ({ isOpen, onClose, userData }) => {
           </div>
         </div>
 
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors"

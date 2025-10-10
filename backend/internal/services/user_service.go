@@ -7,7 +7,6 @@ import (
 	"mantest/backend/internal/models"
 )
 
-// GetUserProfileByEmail fetches user profile information from the database
 func GetUserProfileByEmail(email string) (*models.UserProfile, error) {
 	var profile models.UserProfile
 

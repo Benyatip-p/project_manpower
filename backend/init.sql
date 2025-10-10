@@ -13,7 +13,6 @@ CREATE TABLE positions (
     status VARCHAR(10) DEFAULT 'Active'
 );
 
--- ---- START OF NEW MASTER DATA LOOKUP TABLES ----
 CREATE TABLE sections (
     section_id SERIAL PRIMARY KEY,
     section_name VARCHAR(100) UNIQUE NOT NULL
@@ -46,9 +45,7 @@ CREATE TABLE education_levels (
     edu_id SERIAL PRIMARY KEY,
     edu_name VARCHAR(100) UNIQUE NOT NULL
 );
--- ---- END OF NEW MASTER DATA LOOKUP TABLES ----
 
--- ---- START OF FIX: EMPLOYEE TABLE (Existing) ----
 CREATE TABLE employees (
     employee_id VARCHAR(50) PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -61,9 +58,7 @@ CREATE TABLE employees (
     role_id INT REFERENCES roles(role_id) NOT NULL,
     status VARCHAR(10) DEFAULT 'Active'
 );
--- ---- END OF FIX: EMPLOYEE TABLE ----
 
--- ---- START OF FIX: MANPOWER_REQUESTS (NOW FULLY NORMALIZED) ----
 CREATE TABLE manpower_requests ( 
     request_id SERIAL PRIMARY KEY, 
     doc_number VARCHAR(50) UNIQUE NOT NULL, 
@@ -71,23 +66,17 @@ CREATE TABLE manpower_requests (
     doc_date DATE NOT NULL DEFAULT CURRENT_DATE, 
     requesting_dept_id INT REFERENCES departments(dept_id) NOT NULL, 
     requesting_pos_id INT REFERENCES positions(pos_id) NOT NULL, 
-    
-    -- Foreign Keys แทน VARCHAR เดิม
     employment_type_id INT REFERENCES employment_types(et_id) NOT NULL, 
     contract_type_id INT REFERENCES contract_types(ct_id) NOT NULL, 
     reason_id INT REFERENCES request_reasons(rr_id) NOT NULL,
-    
     required_position_code VARCHAR(50) NOT NULL, 
     required_position_name VARCHAR(100) NOT NULL, 
     min_age INT, 
     max_age INT, 
-    
-    -- Foreign Keys แทน VARCHAR เดิม
     gender_id INT REFERENCES genders(gender_id), 
     nationality_id INT REFERENCES nationalities(nat_id), 
     experience_id INT REFERENCES experiences(exp_id), 
     education_level_id INT REFERENCES education_levels(edu_id), 
-    
     special_qualifications TEXT, 
     current_status VARCHAR(50) DEFAULT 'รอ HR พิจารณา', 
     target_hire_date DATE, 
@@ -95,17 +84,22 @@ CREATE TABLE manpower_requests (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
--- ---- END OF FIX: MANPOWER_REQUESTS ----
 
-CREATE TABLE approval_history ( history_id SERIAL PRIMARY KEY, request_id INT REFERENCES manpower_requests(request_id) NOT NULL, approver_id VARCHAR(50) REFERENCES employees(employee_id) NOT NULL, decision VARCHAR(50) NOT NULL, notes TEXT, approval_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, step_name VARCHAR(100) NOT NULL, status VARCHAR(10) DEFAULT 'Active');
-
---- SEED DATA (ข้อมูลเริ่มต้น) ---
+CREATE TABLE approval_history ( 
+history_id SERIAL PRIMARY KEY, 
+request_id INT REFERENCES manpower_requests(request_id) NOT NULL, 
+approver_id VARCHAR(50) REFERENCES employees(employee_id) NOT NULL, 
+decision VARCHAR(50) NOT NULL,
+ notes TEXT, 
+approval_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
+step_name VARCHAR(100) NOT NULL, 
+status VARCHAR(10) DEFAULT 'Active');
 
 INSERT INTO roles (role_name) VALUES ('Admin'), ('Approve'), ('User');
+
 INSERT INTO departments (dept_name) VALUES ('ฝ่ายบริหาร'), ('ฝ่ายทรัพยากรบุคคล'), ('ฝ่ายการตลาด'), ('ฝ่ายเทคโนโลยีสารสนเทศ'), ('ฝ่ายผลิต'), ('ฝ่ายบัญชี'), ('ฝ่ายจัดซื้อ');
 INSERT INTO positions (pos_name) VALUES ('ผู้จัดการ'), ('เจ้าหน้าที่ HR'), ('นักการตลาด'), ('โปรแกรมเมอร์'), ('พนักงานทั่วไป'), ('นักบัญชี'), ('เจ้าหน้าที่จัดซื้อ');
 
--- ---- START OF NEW MASTER DATA SEED ----
 INSERT INTO sections (section_name) VALUES 
 ('แผนกธุรการ'), 
 ('แผนกบัญชี'), 

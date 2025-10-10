@@ -1,4 +1,3 @@
-// mp-pj/src/pages/user/UserRForm.jsx
 import React, { useState, useEffect } from 'react';
 
 const UserRForm = () => {
@@ -47,7 +46,6 @@ const UserRForm = () => {
   };
 
   useEffect(() => {
-    // Set current date
     const today = new Date();
     const day = String(today.getDate()).padStart(2, '0');
     const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -127,7 +125,6 @@ const UserRForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation อายุ
     if (formData.ageFrom && formData.ageTo) {
       if (parseInt(formData.ageFrom) > parseInt(formData.ageTo)) {
         showNotification('อายุเริ่มต้นต้องน้อยกว่าหรือเท่ากับอายุสิ้นสุด', 'error');

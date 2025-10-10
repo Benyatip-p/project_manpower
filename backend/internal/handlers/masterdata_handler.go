@@ -9,9 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetMasterDataHandler ดึงข้อมูลหลัก (Dropdowns) ทั้งหมด
 func GetMasterDataHandler(c *gin.Context) {
-	// List of all master data tables to fetch
 	tables := map[string]string{
 		"departments":     "department",
 		"positions":       "position",
@@ -23,7 +21,7 @@ func GetMasterDataHandler(c *gin.Context) {
 		"nationalities":   "nationality",
 		"experiences":     "experience",
 		"educationLevels": "education_level",
-        "roles":           "role", // <<-- FIX: เพิ่ม roles เข้าไปในตาราง lookup
+        "roles":           "role", 
 	}
 
 	data := make(map[string][]models.MasterDataItem)
@@ -38,7 +36,6 @@ func GetMasterDataHandler(c *gin.Context) {
 		data[jsonKey] = items
 	}
 	
-	// Construct the response struct based on the map
     response := models.MasterDataResponse{
         Departments: data["departments"],
         Positions: data["positions"],

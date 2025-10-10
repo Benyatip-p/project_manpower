@@ -15,7 +15,6 @@
 
   @layer utilities {
 
-    /* Custom utilities */
     .text-balance {
       text-wrap: balance;
     }

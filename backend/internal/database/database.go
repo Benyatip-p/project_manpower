@@ -6,12 +6,12 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/lib/pq" // PostgreSQL driver
+	_ "github.com/lib/pq" 
 )
 
 var DB *sql.DB
 
-// InitDB initializes the database connection
+
 func InitDB() {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),

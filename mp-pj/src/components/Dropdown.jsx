@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// --- Main Dropdown Component ---
 export const Dropdown = ({ children, className }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -19,17 +18,12 @@ export const Dropdown = ({ children, className }) => {
     };
   }, []);
 
-  // children[0] คือ DropdownButton
-  // children[1] คือ DropdownMenu
-
   return (
     <div ref={dropdownRef} className={`relative inline-block text-left ${className || ''}`}>
-      {/* 1. สร้าง div ครอบ Button เพื่อรับ onClick แทนการใช้ React.cloneElement */}
       <div onClick={toggleDropdown}>
         {children[0]}
       </div>
 
-      {/* 2. ใช้ Transition เพื่อให้มี Animation (Optional แต่แนะนำ) */}
       {isOpen && (
         <div
           className="absolute right-0 z-10 mt-2 w-full origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
@@ -47,9 +41,6 @@ export const Dropdown = ({ children, className }) => {
   );
 };
 
-// --- Sub-components ---
-
-// ไม่จำเป็นต้องรับ onClick อีกต่อไป เพราะ div ด้านบนจัดการแล้ว
 export const DropdownButton = ({ children, className, ...props }) => (
   <button
     type="button"
@@ -63,15 +54,12 @@ export const DropdownButton = ({ children, className, ...props }) => (
   </button>
 );
 
-// แก้ไข DropdownMenu ให้นิยามแค่ children
+
 export const DropdownMenu = ({ children }) => {
-    // ใช้ React.Fragment เพื่อไม่ให้มี div ครอบที่ไม่จำเป็น
     return <>{children}</>;
 };
 
-// แก้ไข DropdownItem ให้เป็น component ที่สมบูรณ์มากขึ้น
 export const DropdownItem = ({ children, onClick, href }) => {
-  // ถ้ามี href ให้ render เป็น <a> แต่ถ้ามี onClick ให้ render เป็น <button>
   const Tag = href ? 'a' : 'button';
 
   return (
