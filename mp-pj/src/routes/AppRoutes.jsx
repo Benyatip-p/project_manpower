@@ -19,6 +19,8 @@ import UserRForm from "../pages/user/UserRForm";
 import Login from "../pages/auth/Login";
 import Loginlayout from "../layouts/Loginlayout";
 
+import DocumentViewPage from '../pages/DocumentViewPage';
+
 
 
 const router = createBrowserRouter([
@@ -36,6 +38,7 @@ const router = createBrowserRouter([
           children: [
                { index: true, element: <Usermainpage /> },
                { path: "requestform", element: <UserRForm /> },
+               { path: "view/:id", element: <DocumentViewPage /> }, 
                { path: "*", element: <Notfound /> },
           ]
 
@@ -47,6 +50,7 @@ const router = createBrowserRouter([
                { index: true, element: <AMainpage /> },
                { path: "dashboard", element: <ADashboard /> },
                { path: "approve", element: <Approve /> },
+                { path: "view/:id", element: <DocumentViewPage /> }, 
                { path: "*", element: <Notfound /> },
           ]
 

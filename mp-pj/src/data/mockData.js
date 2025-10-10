@@ -1,0 +1,372 @@
+// 1. นี่คือ "ฐานข้อมูลจำลอง" ของเรา เป็นข้อมูลดิบทั้งหมด
+// src/data/mockData.js
+
+// src/data/mockData.js
+
+export const rawDocuments = [
+  { 
+    id: 1, 
+    documentNumber: 'PQ24110012', 
+    documentDate: '23/11/2024', 
+    department: 'เชื่อมเชฟ', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'ผ่านการอนุมัติ', 
+    ceoStatus: 'ผ่านการอนุมัติ', 
+    dueDate: '29/12/2024',
+    division: 'ฝ่ายผลิต',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'ทดแทนตำแหน่งเดิม',
+    requester: 'นายสมศักดิ์ ขยันยิ่ง',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'PROD-WLD-01',
+    positionRequired: 'ช่างเชื่อม',
+    ageFrom: 22,
+    ageTo: 45,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: '3-5 ปี',
+    educationLevel: 'ปวส. สาขาช่างเชื่อมโลหะ',
+    specialQualifications: 'มีความสามารถในการเชื่อม TIG, MIG และสามารถอ่านแบบได้เป็นอย่างดี'
+  },
+  { 
+    id: 2, 
+    documentNumber: 'PQ24110013', 
+    documentDate: '24/11/2024', 
+    department: 'การตลาด', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'รออนุมัติ', 
+    ceoStatus: 'รออนุมัติ', 
+    dueDate: '30/12/2024',
+    division: 'ฝ่ายขายและการตลาด',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'ขยายทีมสำหรับโปรเจคใหม่',
+    requester: 'นางสาวสมหญิง รักงาน',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'MKT-EXEC-03',
+    positionRequired: 'เจ้าหน้าที่การตลาดดิจิทัล',
+    ageFrom: 25,
+    ageTo: 35,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: '2-4 ปี',
+    educationLevel: 'ปริญญาตรี สาขาการตลาด',
+    specialQualifications: 'มีความเชี่ยวชาญในการใช้ Google Ads, Facebook Ads และเครื่องมือ SEO'
+  },
+  { 
+    id: 3, 
+    documentNumber: 'PQ24110014', 
+    documentDate: '25/11/2024', 
+    department: 'บัญชี', 
+    managerStatus: 'ไม่อนุมัติ', 
+    hrStatus: '-', 
+    ceoStatus: '-', 
+    dueDate: '01/01/2025',
+    division: 'ฝ่ายบัญชีและการเงิน',
+    employmentType: 'พนักงานชั่วคราว',
+    contractType: 'สัญญาจ้าง 6 เดือน',
+    reason: 'ช่วยงานช่วงปิดงบประมาณ',
+    requester: 'นางสาวมานี มีนา',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'ACC-TEMP-02',
+    positionRequired: 'ผู้ช่วยนักบัญชี (ชั่วคราว)',
+    ageFrom: 21,
+    ageTo: 30,
+    gender: 'หญิง',
+    nationality: 'ไทย',
+    experience: 'ยินดีรับนักศึกษาจบใหม่',
+    educationLevel: 'ปริญญาตรี สาขาบัญชี',
+    specialQualifications: 'สามารถใช้โปรแกรม Express ได้จะพิจารณาเป็นพิเศษ'
+  },
+  // ... (ข้อมูลส่วนที่เหลือ ผมได้เพิ่มให้ครบถ้วนแล้ว) ...
+  { 
+    id: 4, 
+    documentNumber: 'PQ24110015', 
+    documentDate: '26/11/2024', 
+    department: 'บุคคล', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'ผ่านการอนุมัติ', 
+    ceoStatus: 'ผ่านการอนุมัติ', 
+    dueDate: '02/01/2025',
+    division: 'ฝ่ายทรัพยากรบุคคล',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'ทดแทนตำแหน่งเดิม',
+    requester: 'นายเอกชัย เจริญสุข',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'HR-RECR-01',
+    positionRequired: 'เจ้าหน้าที่สรรหาว่าจ้าง',
+    ageFrom: 24,
+    ageTo: 35,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: '1-3 ปี ในสายงานสรรหา',
+    educationLevel: 'ปริญญาตรี สาขาการจัดการทรัพยากรมนุษย์ หรือที่เกี่ยวข้อง',
+    specialQualifications: 'มีทักษะในการสื่อสารและมนุษยสัมพันธ์ดีเยี่ยม'
+  },
+  { 
+    id: 5, 
+    documentNumber: 'PQ24110016', 
+    documentDate: '27/11/2024', 
+    department: 'ไอที', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'รออนุมัติ', 
+    ceoStatus: 'รออนุมัติ', 
+    dueDate: '03/01/2025',
+    division: 'ฝ่ายเทคโนโลยีสารสนเทศ',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'ดูแลระบบใหม่',
+    requester: 'นายวิทวัส เก่งกาจ',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'IT-SUP-05',
+    positionRequired: 'IT Support',
+    ageFrom: 22,
+    ageTo: 35,
+    gender: 'ชาย',
+    nationality: 'ไทย',
+    experience: '1-2 ปี',
+    educationLevel: 'ปริญญาตรี สาขาวิทยาการคอมพิวเตอร์ หรือที่เกี่ยวข้อง',
+    specialQualifications: 'สามารถแก้ไขปัญหา Hardware, Software และ Network พื้นฐานได้'
+  },
+  { 
+    id: 6, 
+    documentNumber: 'PQ24110017', 
+    documentDate: '28/11/2024', 
+    department: 'จัดซื้อ', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'ผ่านการอนุมัติ', 
+    ceoStatus: 'ผ่านการอนุมัติ', 
+    dueDate: '04/01/2025',
+    division: 'ฝ่ายจัดซื้อ',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'ตำแหน่งงานใหม่',
+    requester: 'นางสาวจินตนา จัดหาดี',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'PUR-STF-02',
+    positionRequired: 'พนักงานจัดซื้อ',
+    ageFrom: 25,
+    ageTo: 40,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: '2 ปีขึ้นไป',
+    educationLevel: 'ปริญญาตรี ทุกสาขา',
+    specialQualifications: 'มีทักษะการเจรจาต่อรองดีเยี่ยม'
+  },
+  { 
+    id: 7, 
+    documentNumber: 'PQ24110018', 
+    documentDate: '29/11/2024', 
+    department: 'ผลิต', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'ผ่านการอนุมัติ', 
+    ceoStatus: 'รออนุมัติ', 
+    dueDate: '05/01/2025',
+    division: 'ฝ่ายผลิต',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'เพิ่มกำลังการผลิต',
+    requester: 'นายมงคล การงาน',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'PROD-OPR-10',
+    positionRequired: 'พนักงานฝ่ายผลิต',
+    ageFrom: 18,
+    ageTo: 40,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: 'ไม่จำเป็นต้องมีประสบการณ์',
+    educationLevel: 'ม.3 ขึ้นไป',
+    specialQualifications: 'มีความขยัน อดทน และสามารถทำงานเป็นกะได้'
+  },
+  { 
+    id: 8, 
+    documentNumber: 'PQ24110019', 
+    documentDate: '30/11/2024', 
+    department: 'คลังสินค้า', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'ผ่านการอนุมัติ', 
+    ceoStatus: 'ผ่านการอนุมัติ', 
+    dueDate: '06/01/2025',
+    division: 'ฝ่ายโลจิสติกส์และคลังสินค้า',
+    employmentType: 'พนักงานสัญญาจ้าง',
+    contractType: 'สัญญาจ้าง 1 ปี',
+    reason: 'รองรับปริมาณสินค้าที่เพิ่มขึ้น',
+    requester: 'นายบัญชา คุมสต็อก',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'WH-STF-04',
+    positionRequired: 'พนักงานคลังสินค้า',
+    ageFrom: 20,
+    ageTo: 45,
+    gender: 'ชาย',
+    nationality: 'ไทย',
+    experience: '1 ปีขึ้นไป',
+    educationLevel: 'ม.6 หรือเทียบเท่า',
+    specialQualifications: 'สามารถขับรถโฟล์คลิฟท์ได้ และมีใบรับรองจะพิจารณาเป็นพิเศษ'
+  },
+  { 
+    id: 9, 
+    documentNumber: 'PQ24110020', 
+    documentDate: '01/12/2024', 
+    department: 'ซ่อมบำรุง', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'ผ่านการอนุมัติ', 
+    ceoStatus: 'ผ่านการอนุมัติ', 
+    dueDate: '07/01/2025',
+    division: 'ฝ่ายเทคนิคและวิศวกรรม',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'ทดแทนพนักงานที่ลาออก',
+    requester: 'นายช่างใหญ่ สามารถ',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'MNT-TECH-02',
+    positionRequired: 'ช่างซ่อมบำรุง',
+    ageFrom: 22,
+    ageTo: 50,
+    gender: 'ชาย',
+    nationality: 'ไทย',
+    experience: '2-5 ปี',
+    educationLevel: 'ปวช. / ปวส. สาขาช่างไฟฟ้า, ช่างยนต์, ช่างกล',
+    specialQualifications: 'มีประสบการณ์ซ่อมบำรุงเครื่องจักรในโรงงานอุตสาหกรรม'
+  },
+  { 
+    id: 10, 
+    documentNumber: 'PQ24110021', 
+    documentDate: '02/12/2024', 
+    department: 'การตลาด', 
+    managerStatus: 'รออนุมัติ', 
+    hrStatus: 'รออนุมัติ', 
+    ceoStatus: 'รออนุมัติ', 
+    dueDate: '08/01/2025',
+    division: 'ฝ่ายขายและการตลาด',
+    employmentType: 'พนักงานฝึกงาน',
+    contractType: 'สัญญาฝึกงาน 3 เดือน',
+    reason: 'ช่วยงานแคมเปญสิ้นปี',
+    requester: 'นางสาวสมหญิง รักงาน',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'MKT-INT-01',
+    positionRequired: 'นักศึกษาฝึกงานการตลาด',
+    ageFrom: 18,
+    ageTo: 25,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: 'ไม่จำเป็นต้องมีประสบการณ์',
+    educationLevel: 'กำลังศึกษาปริญญาตรี ชั้นปีที่ 3-4',
+    specialQualifications: 'มีความคิดสร้างสรรค์และสนใจในงานด้านการตลาดออนไลน์'
+  },
+  { 
+    id: 11, 
+    documentNumber: 'PQ24110022', 
+    documentDate: '03/12/2024', 
+    department: 'บุคคล', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'ผ่านการอนุมัติ', 
+    ceoStatus: 'ผ่านการอนุมัติ', 
+    dueDate: '09/01/2025',
+    division: 'ฝ่ายทรัพยากรบุคคล',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'ขยายทีมสรรหา',
+    requester: 'นายเอกชัย เจริญสุข',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'HR-RECR-02',
+    positionRequired: 'เจ้าหน้าที่สรรหาอาวุโส',
+    ageFrom: 28,
+    ageTo: 40,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: '5 ปีขึ้นไปในสายงานสรรหา',
+    educationLevel: 'ปริญญาตรีขึ้นไป',
+    specialQualifications: 'มีประสบการณ์ในการสรรหาตำแหน่งระดับผู้จัดการ'
+  },
+  { 
+    id: 12, 
+    documentNumber: 'PQ24110023', 
+    documentDate: '04/12/2024', 
+    department: 'บัญชี', 
+    managerStatus: 'ผ่านการอนุมัติ', 
+    hrStatus: 'ผ่านการอนุมัติ', 
+    ceoStatus: 'ผ่านการอนุมัติ', 
+    dueDate: '10/01/2025',
+    division: 'ฝ่ายบัญชีและการเงิน',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'ทดแทนตำแหน่งเดิม',
+    requester: 'นางสาวมานี มีนา',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'ACC-SENR-01',
+    positionRequired: 'นักบัญชีอาวุโส',
+    ageFrom: 30,
+    ageTo: 45,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: '5-7 ปี',
+    educationLevel: 'ปริญญาตรี สาขาบัญชี',
+    specialQualifications: 'สามารถปิดงบการเงินได้ และมีความรู้ด้านภาษีเป็นอย่างดี'
+  },
+  { 
+    id: 13, 
+    documentNumber: 'PQ24110024', 
+    documentDate: '24/11/2024', 
+    department: 'การตลาด', 
+    managerStatus: 'รออนุมัติ', 
+    hrStatus: 'รออนุมัติ', 
+    ceoStatus: 'รออนุมัติ', 
+    dueDate: '30/12/2024',
+    division: 'ฝ่ายขายและการตลาด',
+    employmentType: 'พนักงานประจำ',
+    contractType: 'สัญญาจ้างไม่มีกำหนด',
+    reason: 'เปิดตลาดลูกค้ากลุ่มใหม่',
+    requester: 'นายพิชัย ชนะศึก',
+    // ----- เพิ่มข้อมูลส่วนคุณสมบัติ -----
+    jobCode: 'MKT-SALE-11',
+    positionRequired: 'พนักงานขาย',
+    ageFrom: 23,
+    ageTo: 38,
+    gender: 'ไม่ระบุ',
+    nationality: 'ไทย',
+    experience: '1-3 ปี ด้านการขาย',
+    educationLevel: 'ปริญญาตรี ทุกสาขา',
+    specialQualifications: 'มีรถยนต์ส่วนตัวและใบขับขี่ สามารถเดินทางไปต่างจังหวัดได้'
+  },
+];
+
+// 2. สร้างฟังก์ชันที่ "จำลอง" การประมวลผลของ Backend เพื่อสร้างข้อมูลสำหรับ Dashboard
+export const generateDashboardData = () => {
+  const totalRequests = rawDocuments.length;
+  
+  const pendingRequests = rawDocuments.filter(doc => 
+    doc.managerStatus === 'รออนุมัติ' || 
+    doc.hrStatus === 'รออนุมัติ' || 
+    doc.ceoStatus === 'รออนุมัติ'
+  ).length;
+
+  const approvedRequests = rawDocuments.filter(doc => 
+    doc.managerStatus === 'ผ่านการอนุมัติ' && 
+    doc.hrStatus === 'ผ่านการอนุมัติ' && 
+    doc.ceoStatus === 'ผ่านการอนุมัติ'
+  ).length;
+
+  return {
+    stats: {
+      totalRequests: totalRequests,
+      pendingRequests: pendingRequests,
+      hireRate: '20%', // Mock data
+      resignationRate: '10%', // Mock data
+    },
+    pieData: [
+      { name: 'คำร้องที่อนุมัติแล้ว', value: approvedRequests },
+      { name: 'คำร้องรออนุมัติ', value: totalRequests - approvedRequests },
+    ],
+    // ข้อมูลนี้อาจจะมาจากตารางอื่นใน DB จริง แต่เราจะจำลองไว้ที่นี่
+     lineData: [ 
+      { department: 'บริหาร', hires: 1, resignations: 0 },
+      { department: 'ซ่อมบำรุง', hires: 2, resignations: 1 },
+      { department: 'บัญชี', hires: 4, resignations: 2 },
+      { department: 'ไอที', hires: 5, resignations: 3 },
+      { department: 'บุคคล', hires: 10, resignations: 8 },
+      { department: 'การตลาด', hires: 7, resignations: 6 },
+    ],
+  };
+};
