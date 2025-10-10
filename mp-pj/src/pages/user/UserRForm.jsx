@@ -3,20 +3,20 @@ import React, { useState, useEffect } from 'react';
 const UserRForm = () => {
   const [formData, setFormData] = useState({
     documentDate: '',
-    departmentId: '', 
+    departmentId: '',
     sectionId: '',
-    employmentTypeId: '', 
-    contractTypeId: '', 
-    requestReasonId: '', 
+    employmentTypeId: '',
+    contractTypeId: '',
+    requestReasonId: '',
     requesterName: '',
-    positionId: '', 
+    positionId: '',
     requiredPositionId: '',
     ageFrom: '',
     ageTo: '',
     genderId: '',
-    nationalityId: '', 
-    experienceId: '', 
-    educationLevelId: '', 
+    nationalityId: '',
+    experienceId: '',
+    educationLevelId: '',
     specialQualifications: ''
   });
 
@@ -32,13 +32,13 @@ const UserRForm = () => {
     experiences: [],
     educationLevels: []
   });
-  
+
   const [notification, setNotification] = useState({
     show: false,
     message: '',
     type: 'success'
   });
-  
+
   const getNameFromId = (id, listName) => {
     const list = masterData[listName] || [];
     const item = list.find(item => item.id === parseInt(id));
@@ -54,30 +54,30 @@ const UserRForm = () => {
     setFormData(prev => ({ ...prev, documentDate: formattedDate }));
 
     const fetchMasterData = async () => {
-        try {
-            const response = await fetch('/api/masterdata');
-            if (response.ok) {
-                const data = await response.json();
-                setMasterData(data);
-            } else {
-                console.error("Failed to fetch master data, status:", response.status);
-                showNotification('ไม่สามารถดึงข้อมูลหลักได้', 'error');
-            }
-        } catch (error) {
-            console.error('Error fetching master data:', error);
-            showNotification('เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อดึงข้อมูลหลัก', 'error');
+      try {
+        const response = await fetch('/api/masterdata');
+        if (response.ok) {
+          const data = await response.json();
+          setMasterData(data);
+        } else {
+          console.error("Failed to fetch master data, status:", response.status);
+          showNotification('ไม่สามารถดึงข้อมูลหลักได้', 'error');
         }
+      } catch (error) {
+        console.error('Error fetching master data:', error);
+        showNotification('เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อดึงข้อมูลหลัก', 'error');
+      }
     };
     fetchMasterData();
   }, []);
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleDateChange = (e) => {
-    let value = e.target.value.replace(/\D/g, ''); 
+    let value = e.target.value.replace(/\D/g, '');
 
     if (value.length >= 2) {
       value = value.slice(0, 2) + '/' + value.slice(2);
@@ -103,14 +103,14 @@ const UserRForm = () => {
 
     setFormData({
       documentDate: formattedDate,
-      departmentId: '', 
+      departmentId: '',
       sectionId: '',
       employmentTypeId: '',
       contractTypeId: '',
       requestReasonId: '',
       requesterName: '',
       positionId: '',
-      requiredPositionId: '', 
+      requiredPositionId: '',
       ageFrom: '',
       ageTo: '',
       genderId: '',
@@ -132,24 +132,24 @@ const UserRForm = () => {
         return;
       }
     }
-    
+
     const dataToSubmit = {
-        documentDate: formData.documentDate,
-        department: getNameFromId(formData.departmentId, 'departments'), 
-        section: getNameFromId(formData.sectionId, 'sections'),
-        employmentType: getNameFromId(formData.employmentTypeId, 'employmentTypes'),
-        contractType: getNameFromId(formData.contractTypeId, 'contractTypes'),
-        requestReason: getNameFromId(formData.requestReasonId, 'requestReasons'),
-        requesterName: formData.requesterName,
-        positionId: formData.positionId,
-        positionRequire: getNameFromId(formData.requiredPositionId, 'positions'),
-        ageFrom: formData.ageFrom,
-        ageTo: formData.ageTo,
-        gender: getNameFromId(formData.genderId, 'genders'),
-        nationality: getNameFromId(formData.nationalityId, 'nationalities'),
-        experience: getNameFromId(formData.experienceId, 'experiences'),
-        educationLevel: getNameFromId(formData.educationLevelId, 'educationLevels'),
-        specialQualifications: formData.specialQualifications,
+      documentDate: formData.documentDate,
+      department: getNameFromId(formData.departmentId, 'departments'),
+      section: getNameFromId(formData.sectionId, 'sections'),
+      employmentType: getNameFromId(formData.employmentTypeId, 'employmentTypes'),
+      contractType: getNameFromId(formData.contractTypeId, 'contractTypes'),
+      requestReason: getNameFromId(formData.requestReasonId, 'requestReasons'),
+      requesterName: formData.requesterName,
+      positionId: formData.positionId,
+      positionRequire: getNameFromId(formData.requiredPositionId, 'positions'),
+      ageFrom: formData.ageFrom,
+      ageTo: formData.ageTo,
+      gender: getNameFromId(formData.genderId, 'genders'),
+      nationality: getNameFromId(formData.nationalityId, 'nationalities'),
+      experience: getNameFromId(formData.experienceId, 'experiences'),
+      educationLevel: getNameFromId(formData.educationLevelId, 'educationLevels'),
+      specialQualifications: formData.specialQualifications,
     };
 
 
@@ -210,14 +210,14 @@ const UserRForm = () => {
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">ฝ่าย</label>
               <select
-                name="departmentId" 
+                name="departmentId"
                 value={formData.departmentId}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-white"
               >
                 <option value="">-- เลือกฝ่าย --</option>
-                {masterData.departments.map((dept) => ( 
+                {masterData.departments.map((dept) => (
                   <option key={dept.id} value={dept.id}>{dept.name}</option>
                 ))}
               </select>
@@ -461,7 +461,7 @@ const UserRForm = () => {
           <div className="flex justify-end gap-4 pt-4">
             <button
               type="submit"
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-10 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium text-white py-3 px-10 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
             >
               บันทึกข้อมูล
             </button>
@@ -478,9 +478,16 @@ const UserRForm = () => {
       </div>
 
       {notification.show && (
-        <div className={`fixed top-5 right-5 flex items-center gap-4 px-6 py-4 rounded-xl shadow-2xl animate-slide-in z-50 ${notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white`}>
-          <span className="text-2xl">{notification.type === 'success' ? '✓' : '✕'}</span>
-          <span className="font-semibold text-lg">{notification.message}</span>
+        <div className="fixed top-13 right-5 z-50 animate-slide-in">
+          <div className={`flex items-center gap-3 px-5 py-3 rounded-full shadow-lg backdrop-blur-sm ${notification.type === 'success'
+              ? 'bg-green-500/90 text-white'
+              : 'bg-red-500/90 text-white'
+            }`}>
+            <span className="text-xl">
+              {notification.type === 'success' ? '✓' : '✕'}
+            </span>
+            <span className="text-lg">{notification.message}</span>
+          </div>
         </div>
       )}
     </div>
