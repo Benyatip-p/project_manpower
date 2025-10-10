@@ -134,7 +134,6 @@ func GetIDByName(tableName, name string) (int, error) {
 		return 0, errors.New("invalid lookup table name")
 	}
 
-	// ใช้ UPPER() ในการค้นหาเพื่อให้ Case-Insensitive
 	query := fmt.Sprintf("SELECT %s FROM %s WHERE UPPER(%s) = UPPER($1)", idCol, tableAlias, nameCol)
 	
 	var id int

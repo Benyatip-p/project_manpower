@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: nginx/Dockerfile
     ports:
-      - "8080:80" # <<< เปลี่ยนพอร์ตตรงนี้
+      - "8080:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -15,7 +15,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - "8088:8080" # <<< ย้าย Backend ไปพอร์ต 8088
+      - "8088:8080"
     restart: unless-stopped
     depends_on:
       db:

@@ -6,7 +6,7 @@ import UserProfilePopup from '../components/UserProfilePopup';
 
 const UserNavbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null); // Start with null
+  const [currentUser, setCurrentUser] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
 
@@ -24,11 +24,9 @@ const UserNavbar = ({ onToggleSidebar }) => {
             setCurrentUser(data);
           } else {
             console.error("Failed to fetch user data, status:", response.status);
-            // Handle error, maybe sign out user
             signOut();
           }
         } else {
-            // No email in storage, sign out
             signOut();
         }
 
@@ -55,7 +53,6 @@ const UserNavbar = ({ onToggleSidebar }) => {
         <div className="w-full px-8">
           <div className="flex justify-between items-center h-18">
 
-            {/* Left Side: Menu + Logo */}
             <div className="flex items-center gap-4 -ml-5">
               <button
                 onClick={onToggleSidebar}
@@ -85,7 +82,6 @@ const UserNavbar = ({ onToggleSidebar }) => {
               </Link>
             </div>
 
-            {/* Right Side: Notification and Profile */}
             <div className="flex items-center gap-3">
               <button
                 className="p-2 hover:bg-neutral-500 rounded-lg transition-colors active:scale-95 relative"
@@ -160,7 +156,6 @@ const UserNavbar = ({ onToggleSidebar }) => {
         </div>
       </nav>
 
-      {/* Profile Popup */}
       <UserProfilePopup
         isOpen={showProfilePopup}
         onClose={() => setShowProfilePopup(false)}

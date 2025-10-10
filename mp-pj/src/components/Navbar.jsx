@@ -18,9 +18,7 @@ const Navbar = ({ onToggleSidebar, onToggleMobileSidebar }) => {
       <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16 md:h-18">
 
-          {/* ฝั่งซ้าย: ปุ่มเมนู + โลโก้ */}
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
-            {/* ปุ่มเมนู Mobile */}
             <button
               onClick={onToggleMobileSidebar}
               className="md:hidden p-1.5 sm:p-2 hover:bg-neutral-500 rounded-lg transition-colors active:scale-95 touch-manipulation"
@@ -40,7 +38,6 @@ const Navbar = ({ onToggleSidebar, onToggleMobileSidebar }) => {
               </svg>
             </button>
 
-            {/* ปุ่มเมนู Desktop */}
             <button
               onClick={onToggleSidebar}
               className="hidden md:block p-2 hover:bg-neutral-500 rounded-lg transition-colors active:scale-95"
@@ -60,7 +57,6 @@ const Navbar = ({ onToggleSidebar, onToggleMobileSidebar }) => {
               </svg>
             </button>
 
-            {/* Logo - Responsive */}
             <Link 
               to="/" 
               className="flex items-center group"
@@ -71,19 +67,10 @@ const Navbar = ({ onToggleSidebar, onToggleMobileSidebar }) => {
                 className="h-8 sm:h-10 md:h-12 lg:h-13 w-auto group-hover:scale-110 transition-transform duration-200"
               />
             </Link>
-
-            {/* Company Name - แสดงเฉพาะ desktop
-            <div className="hidden lg:block">
-              <h1 className="text-white font-semibold text-sm lg:text-base xl:text-lg">
-                ระบบจัดการกำลังคน
-              </h1>
-            </div> */}
             
           </div>
 
-          {/* ฝั่งขวา: Notification and Profile */}
           <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-            {/* Notification Button */}
             <button 
               className="p-1.5 sm:p-2 hover:bg-neutral-500 rounded-lg transition-colors active:scale-95 touch-manipulation relative"
               aria-label="Notifications"
@@ -103,15 +90,12 @@ const Navbar = ({ onToggleSidebar, onToggleMobileSidebar }) => {
       
             </button>
 
-            {/* User Profile with Dropdown */}
             <Dropdown className="hover:bg-neutral-500 rounded-xl">
               <DropdownButton className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl cursor-pointer transition-colors active:scale-95 touch-manipulation">
-                {/* Avatar */}
                 <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg bg-amber-700 flex items-center justify-center text-white font-medium text-sm sm:text-base md:text-lg flex-shrink-0">
                   {currentUser.firstname.charAt(0)}
                 </div>
 
-                {/* User Info - ซ่อนบน mobile เล็ก */}
                 <div className="hidden sm:block text-left max-w-[120px] md:max-w-[150px] lg:max-w-none">
                   <div className="text-xs md:text-sm font-medium text-white truncate">
                     {currentUser.firstname}
@@ -121,12 +105,10 @@ const Navbar = ({ onToggleSidebar, onToggleMobileSidebar }) => {
                   </div>
                 </div>
 
-                {/* Chevron Icon - ซ่อนบน mobile เล็ก */}
                 <ChevronDownIcon className="hidden sm:block w-4 h-4 md:w-5 md:h-5 text-gray-400 flex-shrink-0" />
               </DropdownButton>
 
               <DropdownMenu className="w-48 sm:w-56">
-                {/* User Info Header - แสดงเฉพาะใน dropdown บน mobile */}
                 <div className="sm:hidden px-4 py-3 border-b border-gray-200">
                   <div className="text-sm font-medium text-gray-900 truncate">
                     {currentUser.firstname} {currentUser.lastname}

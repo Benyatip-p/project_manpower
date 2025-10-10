@@ -1,4 +1,3 @@
-// backend/internal/models/admin_input.go
 package models
 
 type NewEmployeeRequest struct {
@@ -6,8 +5,8 @@ type NewEmployeeRequest struct {
 	LastName  string `json:"lastName" binding:"required"`
 	Email     string `json:"email" binding:"required,email"`
 	Password  string `json:"password" binding:"required"`
-	Role      string `json:"role" binding:"required"`      // Role Name (e.g., 'Admin')
-	Department string `json:"department"` // Dept Name
-	Position  string `json:"position"`  // Pos Name
+	Role      string `json:"role" binding:"required"`   
+	Department string `json:"department"` 
+	Position  string `json:"position"`  
 	EmployeeID string `json:"employeeId" binding:"required"`
 }

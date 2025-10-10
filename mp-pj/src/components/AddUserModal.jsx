@@ -26,10 +26,8 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
         if (response.ok) {
           const data = await response.json();
           
-          // --- LOGGING FOR DEBUGGING ---
           console.log("Master Data Received from Backend:", data);
           console.log("Roles Array Status:", data.roles);
-          // -----------------------------
 
           setMasterData({
             roles: data.roles || [],

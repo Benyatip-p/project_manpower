@@ -58,7 +58,6 @@ const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
 
   return (
     <>
-      {/* Desktop Sidebar - แสดงตั้งแต่ md: ขึ้นไป */}
       <aside
         className={`
           hidden md:flex md:flex-col
@@ -73,8 +72,6 @@ const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
         `}
       >
 
-
-        {/* Menu Items */}
         <nav className={`
           flex-1 overflow-y-auto overflow-x-hidden
           ${isCollapsed ? 'p-2' : 'p-3 md:p-4 lg:p-4'}
@@ -117,7 +114,6 @@ const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
 
       </aside>
 
-      {/* Mobile Sidebar - แสดงเฉพาะ mobile/tablet */}
       <aside
         className={`
           md:hidden
@@ -131,7 +127,6 @@ const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
           flex flex-col
         `}
       >
-        {/* Header with Close button */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-neutral-500 flex-shrink-0">
           <h2 className="text-lg sm:text-xl font-bold">เมนู</h2>
           <button
@@ -154,7 +149,6 @@ const Sidebar = ({ isCollapsed, isMobileOpen, onCloseMobile }) => {
           </button>
         </div>
 
-        {/* Menu Items - Scrollable */}
         <nav className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-5">
           <div className="space-y-2">
             {menuItems.map((item) => (

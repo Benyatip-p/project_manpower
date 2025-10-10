@@ -27,7 +27,6 @@ const AdminSidebar = ({ isCollapsed }) => {
         shadow-lg
       `}
     >
-      {/* Menu Items */}
       <nav className={`flex-1 overflow-y-auto overflow-x-hidden ${isCollapsed ? 'p-2' : 'p-4'}`}>
         <div className="space-y-2">
           {menuItems.map((item) => (

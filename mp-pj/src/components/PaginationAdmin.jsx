@@ -2,13 +2,11 @@
 import React from 'react';
 
 function Pagination({ currentPage, totalPages, onPageChange }) {
-  // ไม่ต้องแสดงผลถ้ามีน้อยกว่า 2 หน้า
   if (totalPages <= 1) {
     return null;
   }
 
   const handlePrevious = () => {
-    // onPageChange คือฟังก์ชัน setCurrentPage ที่ส่งมาจาก Parent
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
     }

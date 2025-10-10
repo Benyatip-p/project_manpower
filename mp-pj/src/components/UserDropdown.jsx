@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-// สร้าง Component ชื่อ UserDropdown
 const UserDropdown = () => {
-  // State สำหรับจัดการการแสดงผลของ dropdown
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Function สำหรับปิด dropdown เมื่อคลิกนอกพื้นที่ของ component
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -14,19 +11,16 @@ const UserDropdown = () => {
       }
     };
 
-    // เพิ่ม event listener เมื่อ component ถูก mount
     document.addEventListener('mousedown', handleClickOutside);
     
-    // Cleanup function: ลบ event listener ออกเมื่อ component ถูก unmount
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
   return (
-    // ใช้ div ครอบทั้งหมดและใส่ ref เพื่อตรวจจับการคลิก
     <div className="relative" ref={dropdownRef}>
-      {/* --- Button สำหรับเปิด/ปิด Dropdown --- */}
+      
       <button
         id="dropdownAvatarNameButton"
         onClick={() => setIsOpen(!isOpen)} // Toggle state เมื่อคลิก
@@ -36,7 +30,7 @@ const UserDropdown = () => {
         <span className="sr-only">Open user menu</span>
         <img
           className="w-8 h-8 me-2 rounded-full"
-          src="https://flowbite.com/docs/images/people/profile-picture-3.jpg" // ใช้ URL เต็มเพื่อให้แสดงผลได้
+          src="https://flowbite.com/docs/images/people/profile-picture-3.jpg" 
           alt="user photo"
         />
         Bonnie Green
@@ -49,16 +43,14 @@ const UserDropdown = () => {
         >
           <path
             stroke="currentColor"
-            strokeLinecap="round" // แก้ไข attribute stroke-linecap เป็น strokeLinecap
-            strokeLinejoin="round" // แก้ไข attribute stroke-linejoin เป็น strokeLinejoin
-            strokeWidth="2" // แก้ไข attribute stroke-width เป็น strokeWidth
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth="2" 
             d="m1 1 4 4 4-4"
           />
         </svg>
       </button>
 
-      {/* --- Dropdown Menu --- */}
-      {/* ใช้เงื่อนไข isOpen เพื่อแสดง/ซ่อนเมนู */}
       {isOpen && (
         <div
           id="dropdownAvatarName"

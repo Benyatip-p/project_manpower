@@ -8,8 +8,6 @@ import (
 )
 
 func GetUserProfileHandler(c *gin.Context) {
-	// In a real app, you would get the email from the JWT token after implementing middleware
-	// For now, we'll get it from a query parameter for simplicity.
 	userEmail := c.Query("email")
 	if userEmail == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email query parameter is required"})

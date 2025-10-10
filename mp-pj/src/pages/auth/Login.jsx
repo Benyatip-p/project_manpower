@@ -33,13 +33,11 @@ const Login = () => {
         return;
       }
 
-      // Login สำเร็จ
-      const { token, role, email: userEmail } = data; // รับ email จาก response
+      const { token, role, email: userEmail } = data; 
       localStorage.setItem('jwt_token', token);
       localStorage.setItem('user_role', role);
-      localStorage.setItem('userEmail', userEmail); // <<< เก็บ userEmail ลง localStorage
+      localStorage.setItem('userEmail', userEmail); 
 
-      // Navigate ตาม role
       switch (role.toLowerCase()) {
         case 'admin':
           navigate('/admin');
@@ -78,7 +76,6 @@ const Login = () => {
         </div>
 
         <form className="space-y-4" onSubmit={handleLogin}>
-          {/* Email Field */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
             <input
@@ -92,7 +89,6 @@ const Login = () => {
             />
           </div>
 
-          {/* Password Field */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
             <div className="mt-1 relative">
@@ -126,7 +122,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Remember Me */}
           <div className="flex items-center">
             <input
               id="remember-me"
@@ -141,7 +136,6 @@ const Login = () => {
             </label>
           </div>
 
-          {/* Sign In Button */}
           <div>
             <button
               type="submit"
@@ -151,7 +145,6 @@ const Login = () => {
             </button>
           </div>
 
-          {/* Error Message */}
           {error && (
             <p className="text-red-500 text-xs font-semibold text-center mt-2">
               {error}

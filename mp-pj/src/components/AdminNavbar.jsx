@@ -24,11 +24,9 @@ const AdminNavbar = ({ onToggleSidebar }) => {
             setCurrentUser(data);
           } else {
             console.error("Failed to fetch user data, status:", response.status);
-            // Handle error, maybe sign out user
             signOut();
           }
         } else {
-            // No email in storage, sign out
             signOut();
         }
 
@@ -55,7 +53,6 @@ const AdminNavbar = ({ onToggleSidebar }) => {
         <div className="w-full px-8">
           <div className="flex justify-between items-center h-18">
 
-            {/* Left Side: Menu + Logo */}
             <div className="flex items-center gap-4 -ml-5">
               <button
                 onClick={onToggleSidebar}
