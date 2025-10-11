@@ -150,6 +150,6 @@ INSERT INTO education_levels (edu_name) VALUES
 ('ไม่จำกัดวุฒิ');
 
 INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, role_id) VALUES
-('E001', 'แอดมิน', 'ทดสอบ', 'admin@example.com', '1234', 1, 1, 1),
-('E002', 'อนุมัติ', 'ทดสอบ', 'approve@example.com', '1234', 1, 1, 2),
-('E003', 'ผู้ใช้งาน', 'ทดสอบ', 'user@example.com', '1234', 5, 4, 3);
+('E001', 'แอดมิน', 'ทดสอบ', 'admin@email.com', '1234', 1, 1, 1),
+('E002', 'อนุมัติ', 'ทดสอบ', 'approve@email.com', '1234', 1, 1, 2),
+('E003', 'ผู้ใช้งาน', 'ทดสอบ', 'user@email.com', '1234', 5, 4, 3);

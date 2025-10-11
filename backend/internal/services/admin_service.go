@@ -7,7 +7,6 @@ import (
 	"mantest/backend/internal/models"
 )
 
-// GetAllEmployees ดึงรายการพนักงานทั้งหมดพร้อมรายละเอียดสำหรับ Admin
 func GetAllEmployees() ([]models.EmployeeDetail, error) {
 	query := `
         SELECT 

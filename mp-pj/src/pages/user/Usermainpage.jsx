@@ -13,18 +13,17 @@ const Usermainpage = () => {
   const ITEMS_PER_PAGE = 10;
 
   
-  const [inputDocNumber, setInputDocNumber] = useState('');// State สำหรับเก็บค่าที่แสดงใน input field
+  const [inputDocNumber, setInputDocNumber] = useState('');
   const [inputStatus, setInputStatus] = useState('');
-  const [filterDocNumber, setFilterDocNumber] = useState('');// State สำหรับเก็บค่าที่ใช้กรองข้อมูลจริงๆ
+  const [filterDocNumber, setFilterDocNumber] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
 
   const docNumberInputRef = useRef(null);
 
-  // useEffect ใช้สำหรับจำลองการดึงข้อมูลเมื่อคอมโพเนนต์ถูกโหลดครั้งแรก
   useEffect(() => {
     console.log("เริ่มดึงข้อมูลเอกสาร..."); 
     setTimeout(() => {
-      setDocuments(mockApiData); // <<-- ใช้ข้อมูลที่ import เข้ามา
+      setDocuments(mockApiData);
       setIsLoading(false);      
       console.log("ดึงข้อมูลสำเร็จ!");
     }, 1000);
@@ -33,14 +32,13 @@ const Usermainpage = () => {
   const handleSearch = () => {
     setFilterDocNumber(inputDocNumber);
     setFilterStatus(inputStatus);
-    setCurrentPage(1); // กลับไปหน้าแรกทุกครั้งที่ค้นหา
+    setCurrentPage(1);
 
      if (docNumberInputRef.current) {
       docNumberInputRef.current.blur();
     }
   };
   
-  // จัดการการกด Enter ในช่องค้นหา
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
       handleSearch();
@@ -57,7 +55,7 @@ const Usermainpage = () => {
 
   const MOCK_CURRENT_USER = {
   username: "somchai.j",
-  department: "การตลาด" //ให้userนี้อยู่ฝ่ายการตาดจะเห็นแค่ของฝ่ายการตลาด
+  department: "การตลาด"
   };
 
   const filteredDocuments = documents
@@ -87,18 +85,14 @@ const Usermainpage = () => {
       itemNumber: indexOfFirstItem + index + 1,
     }));
 
-  // ฟังก์ชันสำหรับเปลี่ยนหน้า
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  // ฟังก์ชันจัดการการลบ
   const handleDelete = (documentId, documentNumber) => {
     if (window.confirm(`คุณต้องการลบเอกสารเลขที่ "${documentNumber}" ใช่หรือไม่?`)) {
       console.log(`กำลังส่งคำขอลบเอกสาร ID: ${documentId} ไปยังเซิร์ฟเวอร์...`);
-      // ในโปรเจกต์จริง:
-      // 1. เรียก API เพื่อลบข้อมูลที่เซิร์ฟเวอร์
-      // 2. เมื่อสำเร็จ ให้อัปเดต state ในหน้าเว็บเพื่อลบแถวนั้นออกไป
+      
       setDocuments(currentDocuments =>
         currentDocuments.filter(doc => doc.id !== documentId)
       );
@@ -112,8 +106,8 @@ const Usermainpage = () => {
       <hr className="border-t border-gray-300 mb-8" />
 
       <div className="mb-6">
-        <div className="flex flex-wrap items-end gap-4"> {/* ใช้ flex-wrap และ gap เพื่อให้ responsive */}
-          {/* กล่องค้นหาเลขที่เอกสาร */}
+        <div className="flex flex-wrap items-end gap-4"> 
+          
           <div className="flex flex-col">
             <label htmlFor="docNumber" className="text-sm font-semibold text-gray-500 mb-2">เลขที่เอกสาร</label>
             <input
@@ -127,7 +121,6 @@ const Usermainpage = () => {
             />
           </div>
 
-          {/* กล่องเลือกสถานะ */}
           <div className="flex flex-col">
             <label htmlFor="status" className="text-sm font-semibold text-gray-500 mb-2">สถานะ</label>
             <UserStatusDropdown
@@ -137,7 +130,6 @@ const Usermainpage = () => {
             />
           </div>
 
-          {/* ปุ่ม */}
           <div className="flex space-x-2">
             <button 
               onClick={handleSearch} 
@@ -160,19 +152,19 @@ const Usermainpage = () => {
       ) : (
         <>
           <UserListTable
-            documents={currentDocuments} // <<-- แก้ไขตรงนี้ครับ!
+            documents={currentDocuments}
             isLoading={isLoading}
             role="user"
             onDelete={handleDelete}
           />
-          {totalPages > 1 && ( // แสดง Pagination ต่อเมื่อมีมากกว่า 1 หน้า
+          {totalPages > 1 && ( 
             <div className="mt-6">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
-                totalItems={filteredDocuments.length} // <-- เพิ่ม prop นี้: จำนวนข้อมูลทั้งหมด (หลังค้นหา)
-                itemsOnPage={currentDocuments.length} // <-- เพิ่ม prop นี้: จำนวนข้อมูลในหน้าปัจจุบัน
+                totalItems={filteredDocuments.length} 
+                itemsOnPage={currentDocuments.length} 
               />
             </div>
           )}
