@@ -1,20 +1,20 @@
-FROM golang:1.24.5 AS builder
+# ใช้ Node.js เวอร์ชัน 20
+FROM node:20-alpine
 
+# ตั้งค่าโฟลเดอร์ทำงาน
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+# คัดลอก package.json และ package-lock.json
+COPY package*.json ./
 
+# ติดตั้ง Dependencies
+RUN npm install
+
+# คัดลอกไฟล์โค้ดที่เหลือทั้งหมด
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /main ./cmd/api
+# เปิดพอร์ตของ Vite Dev Server
+EXPOSE 5173
 
-FROM alpine:latest
-
-WORKDIR /
-
-COPY --from=builder /main /main
-
-EXPOSE 8080
-
-CMD ["/main"]
+# คำสั่งสำหรับเริ่มการทำงาน (สำคัญมาก)
+CMD ["npm", "run", "dev", "--", "--host"]

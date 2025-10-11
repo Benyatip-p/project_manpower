@@ -14,20 +14,20 @@ import (
 
 type ManpowerRequest struct {
 	DocumentDate          string `json:"documentDate"`
-	Department            string `json:"department"` // Name
-	Section               string `json:"section"`    // Name
-	EmploymentType        string `json:"employmentType"` // Name
-	ContractType          string `json:"contractType"`   // Name
-	RequestReason         string `json:"requestReason"`  // Name
+	Department            string `json:"department"` 
+	Section               string `json:"section"`    
+	EmploymentType        string `json:"employmentType"` 
+	ContractType          string `json:"contractType"`   
+	RequestReason         string `json:"requestReason"`  
 	RequesterName         string `json:"requesterName"`
-	PositionId            string `json:"positionId"`     // Code
-	PositionRequire       string `json:"positionRequire"` // Name (position name)
+	PositionId            string `json:"positionId"`     
+	PositionRequire       string `json:"positionRequire"` 
 	AgeFrom               string `json:"ageFrom"`
 	AgeTo                 string `json:"ageTo"`
-	Gender                string `json:"gender"`      // Name
-	Nationality           string `json:"nationality"` // Name
-	Experience            string `json:"experience"`  // Name
-	EducationLevel        string `json:"educationLevel"` // Name
+	Gender                string `json:"gender"`     
+	Nationality           string `json:"nationality"` 
+	Experience            string `json:"experience"`  
+	EducationLevel        string `json:"educationLevel"` 
 	SpecialQualifications string `json:"specialQualifications"`
 }
 
