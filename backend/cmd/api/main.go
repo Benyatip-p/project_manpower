@@ -34,7 +34,9 @@ func main() {
 	{
 		api.POST("/login", handlers.LoginHandler)
 		api.GET("/user/profile", handlers.GetUserProfileHandler)
-		api.POST("/request", handlers.CreateManpowerRequestHandler)
+
+		api.GET("/requests", handlers.GetManpowerRequestsHandler)
+		api.POST("/requests", handlers.CreateManpowerRequestHandler)
         
         api.GET("/masterdata", handlers.GetMasterDataHandler)
         
