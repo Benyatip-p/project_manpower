@@ -146,7 +146,7 @@ INSERT INTO departments (dept_name) VALUES
 INSERT INTO positions (pos_name) VALUES
 ('ผู้จัดการ'), ('เจ้าหน้าที่ HR'),
 ('นักการตลาด'), ('โปรแกรมเมอร์'),
-('พนักงานทั่วไป'), ('นักบัญชี'), ('เจ้าหน้าที่จัดซื้อ');
+('พนักงานทั่วไป'), ('นักบัญชี'), ('เจ้าหน้าที่จัดซื้อ'), ('ผู้อำนวยการฝ่าย');
 
 INSERT INTO sections (section_name) VALUES
 ('แผนกธุรการ'), ('แผนกบัญชี'),
@@ -175,9 +175,13 @@ INSERT INTO education_levels (edu_name) VALUES
 
 INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, role_id)
 VALUES
-('E001', 'แอดมิน', 'ทดสอบ', 'admin@example.com', '1234', 1, 1, 1),
-('E002', 'อนุมัติ', 'ทดสอบ', 'approve@example.com', '1234', 1, 1, 2),
-('E003', 'ผู้ใช้งาน', 'ทดสอบ', 'user@example.com', '1234', 5, 4, 3);
+('E001', 'แอดมิน', 'ทดสอบ', 'admin@example.com', '1234', 4, 4, 1),
+('E002', 'ผู้ใช้งาน', 'ทดสอบ', 'user@example.com', '1234', 3, 3, 3),
+('E003', 'ผู้จัดการแผนก', 'ทดสอบ', 'manager@example.com', '1234', 1, 3, 2),
+('E004', 'ผู้อำนวยการฝ่าย', 'ทดสอบ', 'director@example.com', '1234', 8, 1, 2),
+('E005', 'เจ้าหน้าที่สรรหา', 'ทดสอบ', 'recruiter@example.com', '1234', 2, 2, 2),
+('E006', 'ผู้จัดการแผนก hr', 'ทดสอบ', 'manager_hr@example.com', '1234', 1, 2, 2),
+('E007', 'ผู้อำนวยการฝ่าย hr', 'ทดสอบ', 'director_hr@example.com', '1234', 8, 2, 2);
 
 
 INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, role_id)
@@ -537,5 +541,57 @@ INSERT INTO manpower_requests (
   (SELECT exp_id    FROM experiences WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
   'มีรถยนต์ส่วนตัว เดินทางต่างจังหวัดได้',
+  'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
+);
+
+-- รายการที่ 1: เจ้าหน้าที่การตลาดดิจิทัล (เพิ่มอัตรากำลังพล)
+INSERT INTO manpower_requests (
+  doc_number, employee_id, doc_date,
+  requesting_dept_id, requesting_pos_id,
+  employment_type_id, contract_type_id, reason_id,
+  required_position_name, num_required,
+  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+  special_qualifications,
+  origin_status, hr_status, overall_status
+) VALUES (
+  'PQ24110025', 'E002', TO_DATE('05/12/2024','DD/MM/YYYY'),
+  (SELECT dept_id FROM departments WHERE dept_name = 'ฝ่ายการตลาด'),
+  (SELECT pos_id  FROM positions   WHERE pos_name = 'นักการตลาด'),
+  (SELECT et_id   FROM employment_types WHERE et_name = 'รายเดือน'),
+  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+  (SELECT rr_id   FROM request_reasons  WHERE rr_name = 'เพิ่มอัตรากำลังพล'),
+  'เจ้าหน้าที่การตลาดดิจิทัล (Junior)', 1,
+  22, 32,
+  (SELECT gender_id FROM genders WHERE gender_name = 'ไม่จำกัด'),
+  (SELECT nat_id    FROM nationalities WHERE nat_name = 'ไทย'),
+  (SELECT exp_id    FROM experiences   WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
+  (SELECT edu_id    FROM education_levels WHERE edu_name = 'ปริญญาตรี'),
+  'วางแผน/ยิงโฆษณา Google & Facebook, พื้นฐาน SEO/GA4',
+  'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
+);
+
+-- รายการที่ 2: นักวิเคราะห์การตลาด (แทนตำแหน่งที่ว่าง)
+INSERT INTO manpower_requests (
+  doc_number, employee_id, doc_date,
+  requesting_dept_id, requesting_pos_id,
+  employment_type_id, contract_type_id, reason_id,
+  required_position_name, num_required,
+  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+  special_qualifications,
+  origin_status, hr_status, overall_status
+) VALUES (
+  'PQ24110026', 'E002', TO_DATE('06/12/2024','DD/MM/YYYY'),
+  (SELECT dept_id FROM departments WHERE dept_name = 'ฝ่ายการตลาด'),
+  (SELECT pos_id  FROM positions   WHERE pos_name = 'นักการตลาด'),
+  (SELECT et_id   FROM employment_types WHERE et_name = 'รายเดือน'),
+  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+  (SELECT rr_id   FROM request_reasons  WHERE rr_name = 'แทนตำแหน่งที่ว่าง'),
+  'นักวิเคราะห์การตลาด (Marketing Analyst)', 1,
+  23, 35,
+  (SELECT gender_id FROM genders WHERE gender_name = 'ไม่จำกัด'),
+  (SELECT nat_id    FROM nationalities WHERE nat_name = 'ไทย'),
+  (SELECT exp_id    FROM experiences   WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
+  (SELECT edu_id    FROM education_levels WHERE edu_name = 'ปริญญาตรี'),
+  'ใช้ Excel/SQL ได้ดี, รู้จัก Looker/Power BI จะพิจารณาเป็นพิเศษ',
   'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
 );
