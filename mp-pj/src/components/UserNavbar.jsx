@@ -6,11 +6,17 @@ import UserProfilePopup from '../components/UserProfilePopup';
 
 const UserNavbar = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null); 
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [homePath, setHomePath] = useState('/user');
 
   useEffect(() => {
+    const role = localStorage.getItem('user_role');
+    if (role) {
+      setHomePath(`/${role.toLowerCase()}`);
+    }
+
     const fetchUserData = async () => {
       try {
         setLoading(true);
@@ -23,7 +29,6 @@ const UserNavbar = ({ onToggleSidebar }) => {
             const data = await response.json();
             setCurrentUser(data);
           } else {
-            console.error("Failed to fetch user data, status:", response.status);
             signOut();
           }
         } else {
@@ -52,7 +57,6 @@ const UserNavbar = ({ onToggleSidebar }) => {
       <nav className="bg-neutral-600 shadow-lg sticky top-0 z-50">
         <div className="w-full px-8">
           <div className="flex justify-between items-center h-18">
-
             <div className="flex items-center gap-4 -ml-5">
               <button
                 onClick={onToggleSidebar}
@@ -72,19 +76,32 @@ const UserNavbar = ({ onToggleSidebar }) => {
                   />
                 </svg>
               </button>
-
-              <Link to="/user" className="flex items-center group">
+              <Link to={homePath} className="flex items-center">
                 <img
                   src="/images/nakla.svg"
                   alt="Manpower"
-                  className="h-13 w-auto group-hover:scale-110 transition-transform duration-200"
+                  className="h-13 w-auto"
                 />
               </Link>
             </div>
-
             <div className="flex items-center gap-3">
-              
-
+              <button
+                className="p-2 hover:bg-neutral-500 rounded-lg transition-colors active:scale-95 relative"
+                aria-label="Notifications"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="white"
+                  className="w-6 h-6"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
               <Dropdown className="hover:bg-neutral-500 rounded-xl">
                 <DropdownButton className="flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer transition-colors active:scale-95">
                   {loading || !currentUser ? (
@@ -94,7 +111,6 @@ const UserNavbar = ({ onToggleSidebar }) => {
                       {currentUser?.firstname?.charAt(0).toUpperCase()}
                     </div>
                   )}
-
                   <div className="text-left">
                      {loading || !currentUser ? (
                         <div className="space-y-1">
@@ -114,8 +130,7 @@ const UserNavbar = ({ onToggleSidebar }) => {
                   </div>
                   <ChevronDownIcon className="w-5 h-5 text-gray-400" />
                 </DropdownButton>
-
-                <DropdownMenu className="w-56 text-sm">
+                <DropdownMenu className="w-56">
                   <DropdownItem onClick={() => setShowProfilePopup(true)}>
                     <div className="flex items-center gap-3 w-full py-1">
                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="gray" className="w-6 h-6">
@@ -139,7 +154,6 @@ const UserNavbar = ({ onToggleSidebar }) => {
           </div>
         </div>
       </nav>
-
       <UserProfilePopup
         isOpen={showProfilePopup}
         onClose={() => setShowProfilePopup(false)}
