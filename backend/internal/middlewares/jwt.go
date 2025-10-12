@@ -8,76 +8,70 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// สำคัญ: ต้องให้ secret เดียวกับ services.Authenticate
 var jwtSecret = []byte("YOUR_ULTRA_SECURE_SECRET_KEY")
 
-// Context Keys (ใช้ c.GetString / c.GetInt อ่านใน handler)
 const (
 	CtxEmployeeID = "employee_id"
 	CtxEmail      = "email"
 	CtxRoleName   = "role_name"
 	CtxDeptID     = "dept_id"
 	CtxPosID      = "pos_id"
+	CtxSectionID  = "section_id"
 )
 
-// JWTAuth: ตรวจ Authorization header -> แยก Bearer token -> parse -> set claims ลง Gin context
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth := c.GetHeader("Authorization")
-		if auth == "" || !strings.HasPrefix(auth, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing or invalid Authorization header"})
+		if !strings.HasPrefix(auth, "Bearer ") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing bearer token"})
 			return
 		}
 		tokenStr := strings.TrimPrefix(auth, "Bearer ")
 
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-			// ป้องกัน alg none / ผิด method
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, jwt.ErrTokenMalformed
-			}
+		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 			return jwtSecret, nil
 		})
 		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return
 		}
 
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid claims"})
 			return
 		}
 
-		// ดึงค่าจาก claims แล้ววางลง context (กัน type issue ของ JSON ด้วยตัวแปลงเล็ก ๆ)
-		c.Set(CtxEmployeeID, strFromAny(claims["employee_id"]))
-		c.Set(CtxEmail,      strFromAny(claims["email"]))
-		c.Set(CtxRoleName,   strFromAny(claims["role_name"]))
-		c.Set(CtxDeptID,     intFromAny(claims["dept_id"]))
-		c.Set(CtxPosID,      intFromAny(claims["pos_id"]))
+		// string claims
+		c.Set(CtxEmployeeID, getStringClaim(claims, "employee_id"))
+		c.Set(CtxEmail,      getStringClaim(claims, "email"))
+		c.Set(CtxRoleName,   getStringClaim(claims, "role_name"))
+
+		// int claims (from float64)
+		c.Set(CtxDeptID,    getIntClaim(claims, "dept_id"))
+		c.Set(CtxPosID,     getIntClaim(claims, "pos_id"))
+		c.Set(CtxSectionID, getIntClaim(claims, "section_id"))
 
 		c.Next()
 	}
 }
 
-// ===== helpers =====
-
-func intFromAny(v any) int {
-	switch x := v.(type) {
-	case float64:
-		return int(x)
-	case int:
-		return x
-	case int32:
-		return int(x)
-	case int64:
-		return int(x)
-	default:
-		return 0
-	}
-}
-func strFromAny(v any) string {
-	if s, ok := v.(string); ok {
-		return s
+func getStringClaim(m jwt.MapClaims, key string) string {
+	if v, ok := m[key]; ok {
+		if s, ok2 := v.(string); ok2 {
+			return s
+		}
 	}
 	return ""
+}
+func getIntClaim(m jwt.MapClaims, key string) int {
+	if v, ok := m[key]; ok {
+		switch t := v.(type) {
+		case float64:
+			return int(t)
+		case int:
+			return t
+		}
+	}
+	return 0
 }

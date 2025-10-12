@@ -70,6 +70,7 @@ CREATE TABLE employees (
     profile_image TEXT,
     pos_id INT REFERENCES positions(pos_id),
     dept_id INT REFERENCES departments(dept_id),
+    section_id INT REFERENCES sections(section_id),
     role_id INT REFERENCES roles(role_id) NOT NULL,
     status VARCHAR(10) DEFAULT 'Active'
 );
@@ -84,6 +85,7 @@ CREATE TABLE manpower_requests (
     doc_date DATE NOT NULL DEFAULT CURRENT_DATE,
 
     requesting_dept_id INT REFERENCES departments(dept_id) NOT NULL,
+    requesting_section_id INT REFERENCES sections(section_id),
     requesting_pos_id INT REFERENCES positions(pos_id) NOT NULL,
     employment_type_id INT REFERENCES employment_types(et_id) NOT NULL,
     contract_type_id INT REFERENCES contract_types(ct_id) NOT NULL,
@@ -173,43 +175,53 @@ INSERT INTO education_levels (edu_name) VALUES
 ('ม.3'), ('ม.6'), ('ปวช.'), ('ปวส.'),
 ('ปริญญาตรี'), ('ปริญญาโท'), ('ปริญญาเอก'), ('ไม่จำกัดวุฒิ');
 
-INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, role_id)
+INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, section_id, role_id)
 VALUES
-('E001', 'แอดมิน', 'ทดสอบ', 'admin@example.com', '1234', 4, 4, 1),
-('E002', 'ผู้ใช้งาน', 'ทดสอบ', 'user@example.com', '1234', 3, 3, 3),
-('E003', 'ผู้จัดการแผนก', 'ทดสอบ', 'manager@example.com', '1234', 1, 3, 2),
-('E004', 'ผู้อำนวยการฝ่าย', 'ทดสอบ', 'director@example.com', '1234', 8, 1, 2),
-('E005', 'เจ้าหน้าที่สรรหา', 'ทดสอบ', 'recruiter@example.com', '1234', 2, 2, 2),
-('E006', 'ผู้จัดการแผนก hr', 'ทดสอบ', 'manager_hr@example.com', '1234', 1, 2, 2),
-('E007', 'ผู้อำนวยการฝ่าย hr', 'ทดสอบ', 'director_hr@example.com', '1234', 8, 2, 2);
+('E001', 'แอดมิน', 'ทดสอบ', 'admin@example.com', '1234', 4, 4, 5, 1),
+('E002', 'ผู้ใช้งาน', 'ทดสอบ', 'user@example.com', '1234', 3, 3, 4, 3),
+('E003', 'ผู้จัดการแผนก', 'ทดสอบ', 'manager@example.com', '1234', 1, 3, 4, 2),
+('E004', 'ผู้อำนวยการฝ่าย', 'ทดสอบ', 'director@example.com', '1234', 8, 1, 4, 2),
+('E005', 'เจ้าหน้าที่สรรหา', 'ทดสอบ', 'recruiter@example.com', '1234', 2, 2, 6, 2),
+('E006', 'ผู้จัดการแผนก hr', 'ทดสอบ', 'manager_hr@example.com', '1234', 1, 2, 6, 2),
+('E007', 'ผู้อำนวยการฝ่าย hr', 'ทดสอบ', 'director_hr@example.com', '1234', 8, 2, 6, 2);
 
 
-INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, role_id)
+INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, section_id, role_id)
 VALUES
 ('E101', 'สมศักดิ์', 'ขยันยิ่ง', 'som@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
+ (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
  3),
+
 ('E102', 'สมหญิง', 'รักงาน', 'somying@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
+ (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
  3),
+
 ('E103', 'มานี', 'มีนา', 'manee@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
+ (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
  3),
+
 ('E104', 'เอกชัย', 'เจริญสุข', 'ekachai@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
+ (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
  3),
+
 ('E105', 'วิทวัส', 'เก่งกาจ', 'witwat@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายเทคโนโลยีสารสนเทศ'),
+ (SELECT section_id FROM sections WHERE section_name='แผนกไอที'),
  3);
 
+-- ========== 1 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -218,6 +230,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110012', 'E101', TO_DATE('23/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
   (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id  FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id  FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -235,7 +248,7 @@ INSERT INTO manpower_requests (
 -- ========== 2 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -244,6 +257,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110013', 'E102', TO_DATE('24/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
   (SELECT pos_id FROM positions  WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id  FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id  FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -261,7 +275,7 @@ INSERT INTO manpower_requests (
 -- ========== 3 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -270,6 +284,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110014', 'E103', TO_DATE('25/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้าง 6 เดือน','สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -287,7 +302,7 @@ INSERT INTO manpower_requests (
 -- ========== 4 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -296,6 +311,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110015', 'E103', TO_DATE('26/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -313,7 +329,7 @@ INSERT INTO manpower_requests (
 -- ========== 5 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -322,6 +338,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110016', 'E101', TO_DATE('27/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายเทคโนโลยีสารสนเทศ'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกไอที'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -339,7 +356,7 @@ INSERT INTO manpower_requests (
 -- ========== 6 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -348,6 +365,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110017', 'E105', TO_DATE('28/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายจัดซื้อ'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกจัดซื้อ'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -365,7 +383,7 @@ INSERT INTO manpower_requests (
 -- ========== 7 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -374,6 +392,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110018', 'E102', TO_DATE('29/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -391,7 +410,7 @@ INSERT INTO manpower_requests (
 -- ========== 8 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -400,6 +419,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110019', 'E104', TO_DATE('30/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายจัดซื้อ'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกจัดซื้อ'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้าง 1 ปี','สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -417,7 +437,7 @@ INSERT INTO manpower_requests (
 -- ========== 9 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -426,6 +446,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110020', 'E105', TO_DATE('01/12/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -443,7 +464,7 @@ INSERT INTO manpower_requests (
 -- ========== 10 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -452,6 +473,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110021', 'E101', TO_DATE('02/12/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -469,7 +491,7 @@ INSERT INTO manpower_requests (
 -- ========== 11 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -478,6 +500,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110022', 'E102', TO_DATE('03/12/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -495,7 +518,7 @@ INSERT INTO manpower_requests (
 -- ========== 12 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -504,6 +527,7 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110023', 'E102', TO_DATE('04/12/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -521,7 +545,7 @@ INSERT INTO manpower_requests (
 -- ========== 13 ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
@@ -530,13 +554,14 @@ INSERT INTO manpower_requests (
 ) VALUES (
   'PQ24110024', 'E103', TO_DATE('24/11/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
   'พนักงานขาย', 1,
   23, 38,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+  (SELECT gender_id FROM genders WHERE gender_name IN ('ไม่จำกัด') LIMIT 1),
   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
   (SELECT exp_id    FROM experiences WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
@@ -544,18 +569,19 @@ INSERT INTO manpower_requests (
   'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
 );
 
--- รายการที่ 1: เจ้าหน้าที่การตลาดดิจิทัล (เพิ่มอัตรากำลังพล)
+-- ========== 14 (เดิมระบุ E002 แก้เป็น E102 ให้ไม่ชน FK) ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
   special_qualifications,
   origin_status, hr_status, overall_status
 ) VALUES (
-  'PQ24110025', 'E002', TO_DATE('05/12/2024','DD/MM/YYYY'),
+  'PQ24110025', 'E102', TO_DATE('05/12/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name = 'ฝ่ายการตลาด'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
   (SELECT pos_id  FROM positions   WHERE pos_name = 'นักการตลาด'),
   (SELECT et_id   FROM employment_types WHERE et_name = 'รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
@@ -570,18 +596,19 @@ INSERT INTO manpower_requests (
   'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
 );
 
--- รายการที่ 2: นักวิเคราะห์การตลาด (แทนตำแหน่งที่ว่าง)
+-- ========== 15 (เดิมระบุ E002 แก้เป็น E102 ให้ไม่ชน FK) ==========
 INSERT INTO manpower_requests (
   doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_pos_id,
+  requesting_dept_id, requesting_section_id, requesting_pos_id,
   employment_type_id, contract_type_id, reason_id,
   required_position_name, num_required,
   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
   special_qualifications,
   origin_status, hr_status, overall_status
 ) VALUES (
-  'PQ24110026', 'E002', TO_DATE('06/12/2024','DD/MM/YYYY'),
+  'PQ24110026', 'E102', TO_DATE('06/12/2024','DD/MM/YYYY'),
   (SELECT dept_id FROM departments WHERE dept_name = 'ฝ่ายการตลาด'),
+  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
   (SELECT pos_id  FROM positions   WHERE pos_name = 'นักการตลาด'),
   (SELECT et_id   FROM employment_types WHERE et_name = 'รายเดือน'),
   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),

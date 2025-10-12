@@ -18,22 +18,21 @@ func Authenticate(email, password string) (string, string, string, error) {
 
 	var (
 		employeeID, storedPassword, roleName string
-		deptID, posID                        sql.NullInt64
+		deptID, posID                         sql.NullInt64
+		sectionID                             sql.NullInt64
 	)
 
 	query := `
-		SELECT
-			e.employee_id,
-			e.password,
-			r.role_name,
-			e.dept_id,
-			e.pos_id
-		FROM employees e
-		JOIN roles r ON e.role_id = r.role_id
-		WHERE e.email = $1 AND e.status = 'Active'
-	`
-
-	err := database.DB.QueryRow(query, email).Scan(&employeeID, &storedPassword, &roleName, &deptID, &posID)
+        SELECT e.employee_id, e.password, r.role_name,
+               e.dept_id, e.pos_id, e.section_id
+        FROM employees e
+        JOIN roles r ON e.role_id = r.role_id
+        WHERE e.email = $1 AND e.status = 'Active'
+    `
+	err := database.DB.QueryRow(query, email).Scan(
+		&employeeID, &storedPassword, &roleName,
+		&deptID, &posID, &sectionID,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("Authentication failed for email %s: user not found or inactive", email)
@@ -48,22 +47,13 @@ func Authenticate(email, password string) (string, string, string, error) {
 		return "", "", "", errors.New("authentication failed: invalid credentials")
 	}
 
-	// แปลง Null -> 0 (กัน NULL ใน token)
-	dept := 0
-	pos := 0
-	if deptID.Valid {
-		dept = int(deptID.Int64)
-	}
-	if posID.Valid {
-		pos = int(posID.Int64)
-	}
-
 	claims := jwt.MapClaims{
 		"employee_id": employeeID,
 		"email":       email,
 		"role_name":   roleName,
-		"dept_id":     dept, // ✅ ใส่เพิ่ม
-		"pos_id":      pos,  // ✅ ใส่เพิ่ม
+		"dept_id":     intFromNull(deptID),
+		"pos_id":      intFromNull(posID),
+		"section_id":  intFromNull(sectionID),
 		"exp":         time.Now().Add(24 * time.Hour).Unix(),
 	}
 
@@ -75,4 +65,11 @@ func Authenticate(email, password string) (string, string, string, error) {
 	}
 
 	return tokenString, roleName, email, nil
+}
+
+func intFromNull(v sql.NullInt64) int {
+	if v.Valid {
+		return int(v.Int64)
+	}
+	return 0
 }

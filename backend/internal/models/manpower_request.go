@@ -10,6 +10,9 @@ type ManpowerRequest struct {
 	DepartmentID       int        `json:"department_id" db:"requesting_dept_id"`
 	DepartmentName     string     `json:"department_name" db:"dept_name"`
 
+	SectionID          *int       `json:"section_id" db:"requesting_section_id"`
+	SectionName        *string    `json:"section_name" db:"section_name"`
+
 	PositionID         int        `json:"position_id" db:"requesting_pos_id"`
 	PositionName       string     `json:"position_name" db:"pos_name"`
 
@@ -32,6 +35,8 @@ type ManpowerRequest struct {
 	OriginStatus        string    `json:"origin_status" db:"origin_status"`
 	HRStatus            string    `json:"hr_status" db:"hr_status"`
 	OverallStatus       string    `json:"overall_status" db:"overall_status"`
+
+	DisplayStatus string `json:"display_status"`
 
 	TargetHireDate      *time.Time `json:"target_hire_date" db:"target_hire_date"`
 	CreatedAt           time.Time  `json:"created_at" db:"created_at"`
