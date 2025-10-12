@@ -88,7 +88,10 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center z-40" onClick={handleClose} style={{ backgroundColor: 'transparent' }}>
+    <div 
+        className="fixed inset-0 bg-[rgba(17,24,39,0.3)] backdrop-blur-sm flex justify-center items-center z-40" 
+        onClick={handleClose}
+    >
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg z-50" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-2xl font-bold mb-4">
           {editingUser ? 'แก้ไขข้อมูลผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
