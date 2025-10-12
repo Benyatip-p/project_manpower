@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { PlusIcon } from '@heroicons/react/solid';
 import UserStatusDropdown from '../../components/UserStatusDropdown';
 import UserListTable from '../../components/UserListTable';
 import Pagination from '../../components/Pagination';
@@ -12,6 +14,7 @@ const Usermainpage = () => {
 
   const [inputDocNumber, setInputDocNumber] = useState('');
   const [inputStatus, setInputStatus] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     setTimeout(() => {
@@ -19,6 +22,10 @@ const Usermainpage = () => {
       setIsLoading(false);
     }, 1000);
   }, []);
+
+  const handleCreateRequest = () => {
+    navigate('/user/requestform');
+  };
 
   const handleClearFilters = () => {
     setInputDocNumber('');
@@ -32,9 +39,7 @@ const Usermainpage = () => {
   };
 
   const filteredDocuments = useMemo(() => {
-    // Trim whitespace from the search input
     const trimmedSearch = inputDocNumber.trim();
-
     return documents
       .filter(doc => doc.department === MOCK_CURRENT_USER.department)
       .filter(doc => {
@@ -43,17 +48,13 @@ const Usermainpage = () => {
           doc.hrStatus === inputStatus ||
           doc.ceoStatus === inputStatus;
 
-        // --- START OF NEW CONDITION ---
-        // Check if the document number ends with the search term
         const searchMatch = trimmedSearch === '' ||
           doc.documentNumber.endsWith(trimmedSearch);
-        // --- END OF NEW CONDITION ---
-          
+
         return statusMatch && searchMatch;
       });
   }, [documents, inputDocNumber, inputStatus, MOCK_CURRENT_USER.department]);
 
-  // Reset to page 1 whenever filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [inputDocNumber, inputStatus]);
@@ -84,42 +85,59 @@ const Usermainpage = () => {
 
   return (
     <div className="p-8 bg-white min-h-screen rounded-md">
-      <h2 className="text-2xl font-semibold text-gray-500 mb-8">รายการคำร้อง</h2>
-      <hr className="border-t border-gray-300 mb-8" />
+      <div className="sm:flex sm:items-center">
+        <div className="sm:flex-auto">
+          <h2 className="text-2xl font-semibold text-gray-500">รายการคำร้อง</h2>
+          <p className="mt-2 text-sm text-gray-700">
+            รายการคำร้องทั้งหมดของคุณ
+          </p>
+        </div>
+      </div>
+
+      <hr className="border-t border-gray-300 my-8" />
 
       <div className="mb-6">
-        <div className="flex flex-wrap items-end gap-4">
-          
-          <div className="flex flex-col">
-            <label htmlFor="docNumber" className="text-sm font-semibold text-gray-500 mb-2">เลขที่เอกสาร (2 ตัวท้าย)</label>
-            <input
-              id="docNumber"
-              type="text"
-              className="border-2 border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={inputDocNumber}
-              onChange={(e) => setInputDocNumber(e.target.value)}
-              placeholder="ค้นหา..."
-            />
+        <div className="flex flex-wrap items-end gap-4 justify-between">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex flex-col">
+              <label htmlFor="docNumber" className="text-sm font-semibold text-gray-500 mb-2">เลขที่เอกสาร </label>
+              <input
+                id="docNumber"
+                type="text"
+                className="border-2 border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={inputDocNumber}
+                onChange={(e) => setInputDocNumber(e.target.value)}
+                placeholder="ค้นหา..."
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="status" className="text-sm font-semibold text-gray-500 mb-2">สถานะ</label>
+              <UserStatusDropdown
+                id="status"
+                value={inputStatus}
+                onChange={(value) => setInputStatus(value)}
+              />
+            </div>
+            <div className="flex space-x-2">
+              <button onClick={handleClearFilters} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">
+                Clear
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-col">
-            <label htmlFor="status" className="text-sm font-semibold text-gray-500 mb-2">สถานะ</label>
-            <UserStatusDropdown
-              id="status"
-              value={inputStatus}
-              onChange={(value) => setInputStatus(value)}
-            />
-          </div>
-
-          <div className="flex space-x-2">
-            <button onClick={handleClearFilters} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">
-              Clear
+          <div className="mt-4 sm:mt-0">
+            <button
+              onClick={handleCreateRequest}
+              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            >
+              <PlusIcon className="w-5 h-5" />
+              เพิ่มรายการคำร้อง
             </button>
           </div>
         </div>
       </div>
- 
-      { !isLoading && filteredDocuments.length === 0 ? (
+
+      {!isLoading && filteredDocuments.length === 0 ? (
         <div className="text-center py-12 border-t border-gray-200 mt-4">
           <p className="text-gray-500 text-lg">ไม่พบเอกสารที่ค้นหา</p>
           <p className="text-gray-400 text-sm mt-2">กรุณาลองตรวจสอบเลขที่เอกสารหรือสถานะอีกครั้ง</p>
@@ -132,20 +150,19 @@ const Usermainpage = () => {
             role="user"
             onDelete={handleDelete}
           />
-          {totalPages > 1 && ( 
+          {totalPages > 1 && (
             <div className="mt-6">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
-                totalItems={filteredDocuments.length} 
-                itemsOnPage={currentDocuments.length} 
+                totalItems={filteredDocuments.length}
+                itemsOnPage={currentDocuments.length}
               />
             </div>
           )}
         </>
       )}
-
     </div>
   );
 };
