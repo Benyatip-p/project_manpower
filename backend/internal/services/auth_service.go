@@ -15,16 +15,24 @@ var jwtSecret = []byte("YOUR_ULTRA_SECURE_SECRET_KEY")
 
 func Authenticate(email, password string) (string, string, string, error) {
 	email = strings.ToLower(email)
-	var employeeID, storedPassword, roleName string
+
+	var (
+		employeeID, storedPassword, roleName string
+		deptID, posID                         sql.NullInt64
+		sectionID                             sql.NullInt64
+	)
 
 	query := `
-        SELECT e.employee_id, e.password, r.role_name
+        SELECT e.employee_id, e.password, r.role_name,
+               e.dept_id, e.pos_id, e.section_id
         FROM employees e
         JOIN roles r ON e.role_id = r.role_id
         WHERE e.email = $1 AND e.status = 'Active'
     `
-
-	err := database.DB.QueryRow(query, email).Scan(&employeeID, &storedPassword, &roleName)
+	err := database.DB.QueryRow(query, email).Scan(
+		&employeeID, &storedPassword, &roleName,
+		&deptID, &posID, &sectionID,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("Authentication failed for email %s: user not found or inactive", email)
@@ -43,7 +51,10 @@ func Authenticate(email, password string) (string, string, string, error) {
 		"employee_id": employeeID,
 		"email":       email,
 		"role_name":   roleName,
-		"exp":         time.Now().Add(time.Hour * 24).Unix(),
+		"dept_id":     intFromNull(deptID),
+		"pos_id":      intFromNull(posID),
+		"section_id":  intFromNull(sectionID),
+		"exp":         time.Now().Add(24 * time.Hour).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -54,4 +65,11 @@ func Authenticate(email, password string) (string, string, string, error) {
 	}
 
 	return tokenString, roleName, email, nil
+}
+
+func intFromNull(v sql.NullInt64) int {
+	if v.Valid {
+		return int(v.Int64)
+	}
+	return 0
 }
