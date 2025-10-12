@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -9,6 +9,14 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('remembered_email');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
   const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
   };
@@ -18,7 +26,6 @@ const Login = () => {
     setError('');
 
     try {
-      // เรียก API Backend ที่ถูกต้อง
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,10 +40,16 @@ const Login = () => {
         return;
       }
 
-      const { token, role, email: userEmail } = data; 
+      if (rememberMe) {
+        localStorage.setItem('remembered_email', email);
+      } else {
+        localStorage.removeItem('remembered_email');
+      }
+
+      const { token, role, email: userEmail } = data;
       localStorage.setItem('jwt_token', token);
       localStorage.setItem('user_role', role);
-      localStorage.setItem('userEmail', userEmail); 
+      localStorage.setItem('userEmail', userEmail);
 
       switch (role.toLowerCase()) {
         case 'admin':
@@ -47,6 +60,9 @@ const Login = () => {
           break;
         case 'user':
           navigate('/user');
+          break;
+        case 'recruiter':
+          navigate('/recruiter');
           break;
         default:
           navigate('/');
