@@ -76,7 +76,7 @@ const AdminNavbar = ({ onToggleSidebar }) => {
                   />
                 </svg>
               </button>
-              <Link to={homePath} className="flex items-center">
+              <Link to='/admin' className="flex items-center">
                 <img
                   src="/images/nakla.svg"
                   alt="Manpower"
