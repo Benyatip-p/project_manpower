@@ -37,6 +37,7 @@ func main() {
 
 		api.GET("/user/profile", handlers.GetUserProfileHandler)
 		api.GET("/masterdata", handlers.GetMasterDataHandler)
+		api.GET("/dashboard/overview", handlers.GetDashboardOverview)
 		protected := api.Group("/")
 		protected.Use(middlewares.JWTAuth())
 		{

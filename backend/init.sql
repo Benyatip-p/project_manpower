@@ -135,6 +135,13 @@ CREATE TABLE approval_history (
     approval_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS employee_resignations (
+  id SERIAL PRIMARY KEY,
+  dept_id INT REFERENCES departments(dept_id),
+  resigned_at DATE NOT NULL DEFAULT CURRENT_DATE
+);
+
+
 -- =========================
 -- SEED DATA
 -- =========================
