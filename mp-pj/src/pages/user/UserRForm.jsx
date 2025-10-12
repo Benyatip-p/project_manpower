@@ -156,7 +156,7 @@ const UserRForm = () => {
     console.log('กำลังส่งข้อมูล:', dataToSubmit);
 
     try {
-      const response = await fetch('/api/request', {
+      const response = await fetch('/api/user/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSubmit)

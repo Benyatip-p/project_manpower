@@ -4,6 +4,7 @@ import (
 	"log"
 	"mantest/backend/internal/database"
 	"mantest/backend/internal/handlers"
+	"mantest/backend/internal/middlewares"
 	"net/http"
 
 	"github.com/gin-contrib/cors"
@@ -33,18 +34,27 @@ func main() {
 	api := router.Group("/api")
 	{
 		api.POST("/login", handlers.LoginHandler)
-		api.GET("/user/profile", handlers.GetUserProfileHandler)
 
-		api.GET("/requests", handlers.GetManpowerRequestsHandler)
-		api.POST("/requests", handlers.CreateManpowerRequestHandler)
-        
-        api.GET("/masterdata", handlers.GetMasterDataHandler)
-        
-        admin := api.Group("/admin")
-        {
-            admin.GET("/employees", handlers.GetEmployeesHandler)
-            admin.POST("/employees", handlers.CreateEmployeeHandler) 
-        }
+		api.GET("/user/profile", handlers.GetUserProfileHandler)
+		api.GET("/masterdata", handlers.GetMasterDataHandler)
+		protected := api.Group("/")
+		protected.Use(middlewares.JWTAuth())
+		{
+			// protected.GET("/user/profile", handlers.GetUserProfileHandler)
+			// protected.GET("/masterdata", handlers.GetMasterDataHandler)
+
+			user := protected.Group("/user")
+			{
+				user.GET("/requests", handlers.GetManpowerRequestsHandler)
+				user.POST("/requests", handlers.CreateManpowerRequestHandler)
+			}
+
+			admin := protected.Group("/admin")
+			{
+				admin.GET("/employees", handlers.GetEmployeesHandler)
+				admin.POST("/employees", handlers.CreateEmployeeHandler) 
+			}
+		}
 	}
 
 	log.Println("Server is running on :8080")

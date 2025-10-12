@@ -60,9 +60,9 @@ func CreateNewEmployee(req *models.NewEmployeeRequest) error {
 	if err != nil {
 		log.Printf("SQL INSERT Employee Error: %v", err)
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-			return errors.New("Employee ID or Email already exists in the system.")
+			return errors.New("employee ID or Email already exists in the system")
 		}
-		return errors.New("Failed to save new employee to database.")
+		return errors.New("failed to save new employee to database")
 	}
 
 	return nil

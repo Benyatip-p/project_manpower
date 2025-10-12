@@ -15,16 +15,25 @@ var jwtSecret = []byte("YOUR_ULTRA_SECURE_SECRET_KEY")
 
 func Authenticate(email, password string) (string, string, string, error) {
 	email = strings.ToLower(email)
-	var employeeID, storedPassword, roleName string
+
+	var (
+		employeeID, storedPassword, roleName string
+		deptID, posID                        sql.NullInt64
+	)
 
 	query := `
-        SELECT e.employee_id, e.password, r.role_name
-        FROM employees e
-        JOIN roles r ON e.role_id = r.role_id
-        WHERE e.email = $1 AND e.status = 'Active'
-    `
+		SELECT
+			e.employee_id,
+			e.password,
+			r.role_name,
+			e.dept_id,
+			e.pos_id
+		FROM employees e
+		JOIN roles r ON e.role_id = r.role_id
+		WHERE e.email = $1 AND e.status = 'Active'
+	`
 
-	err := database.DB.QueryRow(query, email).Scan(&employeeID, &storedPassword, &roleName)
+	err := database.DB.QueryRow(query, email).Scan(&employeeID, &storedPassword, &roleName, &deptID, &posID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("Authentication failed for email %s: user not found or inactive", email)
@@ -39,11 +48,23 @@ func Authenticate(email, password string) (string, string, string, error) {
 		return "", "", "", errors.New("authentication failed: invalid credentials")
 	}
 
+	// แปลง Null -> 0 (กัน NULL ใน token)
+	dept := 0
+	pos := 0
+	if deptID.Valid {
+		dept = int(deptID.Int64)
+	}
+	if posID.Valid {
+		pos = int(posID.Int64)
+	}
+
 	claims := jwt.MapClaims{
 		"employee_id": employeeID,
 		"email":       email,
 		"role_name":   roleName,
-		"exp":         time.Now().Add(time.Hour * 24).Unix(),
+		"dept_id":     dept, // ✅ ใส่เพิ่ม
+		"pos_id":      pos,  // ✅ ใส่เพิ่ม
+		"exp":         time.Now().Add(24 * time.Hour).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

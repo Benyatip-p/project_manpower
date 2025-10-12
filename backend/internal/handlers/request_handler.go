@@ -5,32 +5,29 @@ import (
 	"log"
 	"mantest/backend/internal/database"
 	"mantest/backend/internal/models"
-	"mantest/backend/internal/services"
+	mw "mantest/backend/internal/middlewares"
 	"net/http"
-	"strconv"
+	// "strconv"
 	"time"
 	"database/sql"
 
 	"github.com/gin-gonic/gin"
 )
 
-type ManpowerRequest struct {
-	DocumentDate          string `json:"documentDate"`
-	Department            string `json:"department"` // Name
-	Section               string `json:"section"`    // Name
-	EmploymentType        string `json:"employmentType"` // Name
-	ContractType          string `json:"contractType"`   // Name
-	RequestReason         string `json:"requestReason"`  // Name
-	RequesterName         string `json:"requesterName"`
-	PositionId            string `json:"positionId"`     // Code
-	PositionRequire       string `json:"positionRequire"` // Name (position name)
-	AgeFrom               string `json:"ageFrom"`
-	AgeTo                 string `json:"ageTo"`
-	Gender                string `json:"gender"`      // Name
-	Nationality           string `json:"nationality"` // Name
-	Experience            string `json:"experience"`  // Name
-	EducationLevel        string `json:"educationLevel"` // Name
-	SpecialQualifications string `json:"specialQualifications"`
+type CreateManpowerRequestInput struct {
+    RequiredPositionName string  `json:"required_position_name" binding:"required"`
+    NumRequired           int     `json:"num_required" binding:"required"`
+    EmploymentTypeID      int     `json:"employment_type_id" binding:"required"`
+    ContractTypeID        int     `json:"contract_type_id" binding:"required"`
+    ReasonID              int     `json:"reason_id" binding:"required"`
+    MinAge                *int    `json:"min_age"`
+    MaxAge                *int    `json:"max_age"`
+    GenderID              *int    `json:"gender_id"`
+    NationalityID         *int    `json:"nationality_id"`
+    ExperienceID          *int    `json:"experience_id"`
+    EducationLevelID      *int    `json:"education_level_id"`
+    SpecialQualifications string  `json:"special_qualifications"`
+    TargetHireDate        *string `json:"target_hire_date"` // รูปแบบ YYYY-MM-DD
 }
 
 func GetManpowerRequestsHandler(c *gin.Context) {
@@ -132,122 +129,95 @@ func GetManpowerRequestsHandler(c *gin.Context) {
 	})
 }
 
-
-func parseDate(dateStr string) (time.Time, error) {
-	return time.Parse("02/01/2006", dateStr)
-}
-
-func lookupName(c *gin.Context, tableName, name string) (int, error) {
-	id, err := services.GetIDByName(tableName, name)
-	if err != nil {
-		log.Printf("Lookup Error: Failed to find ID for %s '%s': %v", tableName, name, err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid selection for %s: %s", tableName, name)})
-		return 0, err
-	}
-	return id, nil
-}
-
 func CreateManpowerRequestHandler(c *gin.Context) {
-	var req ManpowerRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload", "details": err.Error()})
+	empID := c.GetString(mw.CtxEmployeeID)
+	deptID := c.GetInt(mw.CtxDeptID)
+	posID := c.GetInt(mw.CtxPosID)
+
+	if empID == "" || deptID == 0 || posID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error":"missing auth claims"})
 		return
 	}
 
-	employeeID := "E003" 
-	docNumber := time.Now().Format("20060102-1") 
-	
-	deptID, err := lookupName(c, "department", req.Department)
-	if err != nil { return }
-	
-	posID, err := lookupName(c, "position", req.PositionRequire)
-	if err != nil { return }
-	
-	etID, err := lookupName(c, "employment_type", req.EmploymentType)
-	if err != nil { return }
-	
-	ctID, err := lookupName(c, "contract_type", req.ContractType)
-	if err != nil { return }
+	fmt.Println(empID)
 
-	rrID, err := lookupName(c, "request_reason", req.RequestReason)
-	if err != nil { return }
-	
-	genderID, err := lookupName(c, "gender", req.Gender)
-	if err != nil { return }
-
-	natID, err := lookupName(c, "nationality", req.Nationality)
-	if err != nil { return }
-
-	expID, err := lookupName(c, "experience", req.Experience)
-	if err != nil { return }
-
-	eduID, err := lookupName(c, "education_level", req.EducationLevel)
-	if err != nil { return }
-
-	docDate, err := parseDate(req.DocumentDate)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format. Expected DD/MM/YYYY."})
+	var input CreateManpowerRequestInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
-    
-    minAge, err := strconv.Atoi(req.AgeFrom)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid value for Age From: '%s'", req.AgeFrom)})
-        return
-    }
+	if input.NumRequired <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "num_required must be > 0"})
+		return
+	}
 
-    maxAge, err := strconv.Atoi(req.AgeTo)
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid value for Age To: '%s'", req.AgeTo)})
-        return
-    }
+	// running doc no (ง่าย ๆ)
+	var lastID int
+	if err := database.DB.QueryRow(`SELECT COALESCE(MAX(request_id),0) FROM manpower_requests`).Scan(&lastID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate document number"})
+		return
+	}
+	docNo := generateDocNo(lastID + 1)
 
-	query := `
-		INSERT INTO manpower_requests (
-			doc_number, employee_id, doc_date, requesting_dept_id, requesting_pos_id,
-			employment_type_id, contract_type_id, reason_id, 
-			required_position_code, required_position_name, min_age, max_age, 
-			gender_id, nationality_id, experience_id, education_level_id, 
-			special_qualifications
-		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-		RETURNING request_id
-	`
-	
-	var newRequestID int
-	err = database.DB.QueryRow(query,
-		docNumber,
-		employeeID,
-		docDate,
-		deptID, 
-		posID, 
-		etID,   
-		ctID,   
-		rrID,   
-		req.PositionId, 
-		req.PositionRequire, 
-		minAge, 
-		maxAge, 
-		genderID, 
-		natID,    
-		expID,    
-		eduID,    
-		req.SpecialQualifications,
-	).Scan(&newRequestID)
-
-	if err != nil {
-		log.Printf("SQL INSERT Error: %v", err)
-		if err.Error() == "pq: duplicate key value violates unique constraint \"manpower_requests_doc_number_key\"" {
-			c.JSON(http.StatusConflict, gin.H{"error": "Document number already exists. Please try again."})
-			return
+	// parse target_hire_date
+	var hireDate sql.NullTime
+	if input.TargetHireDate != nil && *input.TargetHireDate != "" {
+		if t, err := time.Parse("2006-01-02", *input.TargetHireDate); err == nil {
+			hireDate.Valid = true
+			hireDate.Time = t
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save manpower request to database."})
+	}
+
+	// INSERT
+	const q = `
+		INSERT INTO manpower_requests (
+			doc_number, employee_id, doc_date,
+			requesting_dept_id, requesting_pos_id,
+			employment_type_id, contract_type_id, reason_id,
+			required_position_name, num_required,
+			min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+			special_qualifications, origin_status, hr_status, overall_status,
+			target_hire_date, created_at, updated_at
+		)
+		VALUES (
+			$1,$2,CURRENT_DATE,
+			$3,$4,$5,$6,$7,
+			$8,$9,
+			$10,$11,$12,$13,$14,$15,
+			$16,'DRAFT','NONE','IN_PROGRESS',
+			$17,NOW(),NOW()
+		)
+		RETURNING request_id, doc_number, created_at
+	`
+
+	var newID int
+	var createdAt time.Time
+	var newDoc string
+	if err := database.DB.QueryRow(q,
+		docNo, empID,
+		deptID, posID,
+		input.EmploymentTypeID, input.ContractTypeID, input.ReasonID,
+		input.RequiredPositionName, input.NumRequired,
+		input.MinAge, input.MaxAge, input.GenderID, input.NationalityID,
+		input.ExperienceID, input.EducationLevelID,
+		input.SpecialQualifications,
+		hireDate,
+	).Scan(&newID, &newDoc, &createdAt); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "Manpower request received and saved successfully!",
-		"id":      newRequestID,
+	c.JSON(http.StatusCreated, gin.H{
+		"message":    "Request created successfully",
+		"request_id": newID,
+		"doc_number": newDoc,
+		"created_at": createdAt,
+		"created_by": empID,
+		"status":     "DRAFT",
 	})
+}
+
+func generateDocNo(id int) string {
+	now := time.Now()
+	return fmt.Sprintf("PQ%s%04d", now.Format("0601"), id) // e.g. PQ25100001
 }
