@@ -1,20 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import UserRowmanage from '../../components/UserRowmanage';
-import Pagination from '../../components/PaginationAdmin';
+// --- 1. เปลี่ยนไป import Pagination ตัวหลัก ---
+import Pagination from '../../components/Pagination'; 
 import AddUserModal from '../../components/AddUserModal';
-import ConfirmationModal from '../../components/ConfirmationModal';
+import ConfirmationModal from '../../components/ConfirmationModal'; 
 import { SearchIcon, XIcon, PlusIcon } from '@heroicons/react/solid';
 
 const ITEMS_PER_PAGE = 10;
 
 function UserManage() {
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null); 
 
   const [notification, setNotification] = useState({
     show: false,
@@ -32,12 +33,12 @@ function UserManage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/employees');
+      const response = await fetch('/api/admin/employees'); 
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.map((user, index) => ({
-            ...user,
-            id: index + 1,
+        setUsers(data.map((user, index) => ({ 
+            ...user, 
+            id: index + 1, 
         })));
       } else {
         console.error("Failed to fetch user list, status:", response.status);
@@ -51,7 +52,7 @@ function UserManage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, []); 
 
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -75,8 +76,9 @@ function UserManage() {
     return filteredUsers.slice(startIndex, endIndex);
   }, [filteredUsers, currentPage]);
 
-  const currentItemCount = paginatedUsers.length;
-  const totalItemCount = filteredUsers.length;
+  // --- 2. เปลี่ยนชื่อตัวแปรให้สื่อความหมาย (ไม่ต้องทำก็ได้ แต่ทำให้อ่านง่ายขึ้น) ---
+  const itemsOnCurrentPage = paginatedUsers.length;
+  const totalItems = filteredUsers.length;
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -96,11 +98,11 @@ function UserManage() {
 
   const handleDeleteUser = (userId) => {
     const user = users.find(u => u.id === userId);
-    setUserToDelete(user);
+    setUserToDelete(user); 
   };
 
   const confirmDeleteHandler = () => {
-    if (!userToDelete) return;
+    if (!userToDelete) return; 
 
     setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
     showNotification(`ลบผู้ใช้ ${userToDelete.firstName} สำเร็จ`, 'success');
@@ -109,7 +111,7 @@ function UserManage() {
       setCurrentPage(currentPage - 1);
     }
 
-    setUserToDelete(null);
+    setUserToDelete(null); 
   };
 
   const handleSaveUser = async (userData) => {
@@ -172,6 +174,7 @@ function UserManage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h2 className="text-2xl font-semibold text-gray-500">จัดการผู้ใช้งาน</h2>
+            <p className="text-sm text-gray-400">เพิ่ม ลบ และแก้ไขข้อมูลผู้ใช้งานในระบบ</p>
           </div>
           <button
             onClick={() => setIsModalOpen(true)}
@@ -249,17 +252,15 @@ function UserManage() {
                 </div>
                 </div>
 
-                <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="text-sm text-gray-600">
-                    แสดง <span className="font-semibold">{currentItemCount}</span> จากทั้งหมด{' '}
-                    <span className="font-semibold">{totalItemCount}</span> รายการ
-                </div>
-
-                <Pagination
+                {/* --- 3. แก้ไขส่วนของ Pagination ทั้งหมด --- */}
+                <div className="mt-4">
+                  <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={setCurrentPage}
-                />
+                    totalItems={totalItems}
+                    itemsOnPage={itemsOnCurrentPage}
+                  />
                 </div>
             </>
         )}
