@@ -14,8 +14,20 @@ function UserManage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  const [notification, setNotification] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+  });
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification({ show: false, message: '', type: 'success' });
+    }, 3000);
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -23,7 +35,10 @@ function UserManage() {
       const response = await fetch('/api/admin/employees');
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.map((user, index) => ({ ...user, id: index + 1 })));
+        setUsers(data.map((user, index) => ({
+            ...user,
+            id: index + 1,
+        })));
       } else {
         console.error("Failed to fetch user list, status:", response.status);
       }
@@ -47,6 +62,7 @@ function UserManage() {
       const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
       const employeeId = user.employeeId.toLowerCase();
       const email = user.email.toLowerCase();
+      
       return fullName.includes(searchLower) || employeeId.includes(searchLower) || email.includes(searchLower);
     });
   }, [users, searchTerm]);
@@ -81,34 +97,36 @@ function UserManage() {
   const handleDeleteUser = (userId) => {
     const user = users.find(u => u.id === userId);
     setUserToDelete(user);
-    setIsConfirmModalOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (userToDelete) {
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
-      alert(`ลบผู้ใช้ ${userToDelete.firstName} ${userToDelete.lastName} สำเร็จ (Mock Delete)`);
-      if (paginatedUsers.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
+  const confirmDeleteHandler = () => {
+    if (!userToDelete) return;
+
+    setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
+    showNotification(`ลบผู้ใช้ ${userToDelete.firstName} สำเร็จ`, 'success');
+    
+    if (paginatedUsers.length === 1 && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
     }
-    setIsConfirmModalOpen(false);
+
     setUserToDelete(null);
   };
 
   const handleSaveUser = async (userData) => {
     const isEditing = !!editingUser;
     const url = '/api/admin/employees';
+    
     const dataToSubmit = {
         employeeId: userData.employeeId,
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
         password: userData.password,
-        role: userData.role,
+        role: userData.role, 
         department: userData.department,
         position: userData.position,
     };
+    
     if (!isEditing) {
         try {
             const response = await fetch(url, {
@@ -116,26 +134,30 @@ function UserManage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataToSubmit),
             });
+
             const result = await response.json();
+
             if (response.ok) {
-                alert(`เพิ่มผู้ใช้งานสำเร็จ!`);
+                showNotification('เพิ่มผู้ใช้งานสำเร็จ!', 'success');
                 fetchUsers();
             } else {
-                alert(`เกิดข้อผิดพลาดในการเพิ่มผู้ใช้งาน: ${result.error || result.message}`);
+                const errorMessage = result.error || result.message || 'เกิดข้อผิดพลาด';
+                showNotification(`เพิ่มผู้ใช้ไม่สำเร็จ: ${errorMessage}`, 'error');
                 console.error("API Error:", result);
                 return;
             }
         } catch (error) {
-            alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+            showNotification('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์', 'error');
             console.error('Fetch Error:', error);
             return;
         }
     } else {
-        setUsers(prevUsers =>
+        setUsers(prevUsers => 
             prevUsers.map(u => u.id === editingUser.id ? { ...userData, id: editingUser.id } : u)
         );
-        alert('แก้ไขข้อมูลผู้ใช้งานสำเร็จ! (Mock Edit)');
+        showNotification('แก้ไขข้อมูลผู้ใช้งานสำเร็จ!', 'success');
     }
+
     handleCloseModal();
   };
 
@@ -145,11 +167,23 @@ function UserManage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        <br />
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">จัดการผู้ใช้งาน</h1>
-        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-8 bg-white min-h-screen rounded-md">
+      <div> 
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-500">จัดการผู้ใช้งาน</h2>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          >
+            <PlusIcon className="w-5 h-5" />
+            เพิ่มผู้ใช้งาน
+          </button>
+        </div>
+        <hr className="border-t border-gray-300 mb-8" />
+
+        <div className="mb-6 flex">
           <div className="relative w-full sm:w-auto">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -157,7 +191,7 @@ function UserManage() {
               placeholder="ค้นหาจากชื่อ-นามสกุล/รหัส/อีเมล"
               value={searchTerm}
               onChange={handleSearchChange}
-              className="pl-10 pr-4 py-2 border rounded-lg w-full sm:w-80 focus:ring-blue-500 focus:border-blue-500"
+              className="pl-10 pr-10 py-2 border-2 border-gray-300 rounded-md w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {searchTerm && (
               <button
@@ -168,60 +202,59 @@ function UserManage() {
               </button>
             )}
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors w-full sm:w-auto justify-center"
-          >
-            <PlusIcon className="w-5 h-5" />
-            เพิ่มผู้ใช้งาน
-          </button>
         </div>
+
         {loading ? (
             <div className="text-center py-10 text-gray-500 text-lg">
                 กำลังโหลดข้อมูลผู้ใช้งาน...
             </div>
         ) : (
             <>
-                <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <table className="w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-100">
-                    <tr>
-                        <th className="px-6 py-3 text-center">บทบาท</th>
-                        <th className="px-6 py-3 text-center">รหัสพนักงาน</th>
-                        <th className="px-6 py-3 text-center">แผนก</th>
-                        <th className="px-6 py-3 text-center">ตำแหน่ง</th>
-                        <th className="px-6 py-3 text-left">ชื่อ</th>
-                        <th className="px-6 py-3 text-left">นามสกุล</th>
-                        <th className="px-6 py-3 text-left">Email</th>
-                        <th className="px-6 py-3 text-center">รหัสผ่าน</th>
-                        <th className="px-6 py-3 text-center">จัดการ</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {paginatedUsers.length > 0 ? (
-                        paginatedUsers.map(user => (
-                        <UserRowmanage
-                            key={user.id}
-                            user={user}
-                            onEdit={handleEditUser}
-                            onDelete={handleDeleteUser}
-                        />
-                        ))
-                    ) : (
+                <div className="overflow-hidden rounded-lg border border-gray-200 shadow-md">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left text-gray-500">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
-                        <td colSpan="9" className="text-center py-10 text-gray-500">
-                            {searchTerm ? `ไม่พบข้อมูลผู้ใช้งานที่ค้นหา: "${searchTerm}"` : 'ไม่พบข้อมูลผู้ใช้งาน'}
-                        </td>
+                            <th className="px-6 py-3 text-center">บทบาท</th>
+                            <th className="px-6 py-3 text-center">รหัสพนักงาน</th>
+                            <th className="px-6 py-3 text-center">แผนก</th>
+                            <th className="px-6 py-3 text-center">ตำแหน่ง</th>
+                            <th className="px-6 py-3 text-left">ชื่อ</th>
+                            <th className="px-6 py-3 text-left">นามสกุล</th>
+                            <th className="px-6 py-3 text-left">Email</th>
+                            <th className="px-6 py-3 text-center">รหัสผ่าน</th>
+                            <th className="px-6 py-3 text-center">จัดการ</th>
                         </tr>
-                    )}
-                    </tbody>
-                </table>
+                        </thead>
+
+                        <tbody className="bg-white divide-y divide-gray-200">
+                        {paginatedUsers.length > 0 ? (
+                            paginatedUsers.map(user => (
+                            <UserRowmanage
+                                key={user.id}
+                                user={user}
+                                onEdit={handleEditUser}
+                                onDelete={handleDeleteUser}
+                            />
+                            ))
+                        ) : (
+                            <tr>
+                            <td colSpan="9" className="text-center py-10 text-gray-500">
+                                {searchTerm ? `ไม่พบข้อมูลผู้ใช้งานที่ค้นหา: "${searchTerm}"` : 'ไม่พบข้อมูลผู้ใช้งาน'}
+                            </td>
+                            </tr>
+                        )}
+                        </tbody>
+                    </table>
                 </div>
+                </div>
+
                 <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="text-sm text-gray-600">
                     แสดง <span className="font-semibold">{currentItemCount}</span> จากทั้งหมด{' '}
                     <span className="font-semibold">{totalItemCount}</span> รายการ
                 </div>
+
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
@@ -231,19 +264,47 @@ function UserManage() {
             </>
         )}
       </div>
+
       <AddUserModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSave={handleSaveUser}
         editingUser={editingUser}
       />
+      
       <ConfirmationModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-        onConfirm={confirmDelete}
-        title="ยืนยันการลบ"
+        isOpen={!!userToDelete} 
+        onClose={() => setUserToDelete(null)} 
+        onConfirm={confirmDeleteHandler} 
+        title="ยืนยันการลบผู้ใช้งาน"
         message={`คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้: ${userToDelete?.firstName} ${userToDelete?.lastName}?`}
       />
+
+      {notification.show && (
+        <div className="fixed top-20 right-5 z-50 animate-fade-in">
+          <div 
+            className={`flex items-center gap-3 px-6 py-3 rounded-full shadow-lg ${
+              notification.type === 'success' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-red-500 text-white'
+            }`}
+          >
+            <div className="flex-shrink-0">
+                {notification.type === 'success' ? (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                ) : (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                )}
+            </div>
+            <span className="font-semibold">{notification.message}</span>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
