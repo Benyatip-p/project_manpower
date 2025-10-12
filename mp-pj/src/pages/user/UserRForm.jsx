@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 
 const UserRForm = () => {
+  const navigate = useNavigate(); 
+
   const [formData, setFormData] = useState({
     documentDate: '',
     departmentId: '',
@@ -184,7 +187,6 @@ const UserRForm = () => {
   return (
     <div className="min-h-screen p-5 bg-gray-50">
       <div className="max-w-4xl mx-auto">
-
         <h2 className="text-3xl font-bold text-gray-800 mb-8">ใบร้องขอกำลังคน</h2>
 
         <hr className="my-12 h-0.5 border-t-0 bg-neutral-200 opacity-100" />
@@ -458,25 +460,35 @@ const UserRForm = () => {
 
           <hr className="my-12 h-0.5 border-t-0 bg-neutral-200 opacity-100" />
 
-          <div className="flex justify-end gap-4 pt-4">
-            <button
-              type="submit"
-              className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium text-white py-3 px-10 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-            >
-              บันทึกข้อมูล
-            </button>
+          <div className="flex justify-between items-center pt-4">
+            
             <button
               type="button"
-              onClick={handleClear}
-              className="bg-gray-300 hover:bg-gray-400 text-white font-bold py-3 px-10 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+              onClick={() => navigate(-1)} 
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-10 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
             >
-              Clear
+              ย้อนกลับ
             </button>
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium text-white py-3 px-10 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+              >
+                บันทึกข้อมูล
+              </button>
+              <button
+                type="button"
+                onClick={handleClear}
+                className="bg-gray-300 hover:bg-gray-400 text-white font-bold py-3 px-10 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+              >
+                Clear
+              </button>
+            </div>
           </div>
 
         </form>
       </div>
-
+      
       {notification.show && (
         <div className="fixed top-13 right-5 z-50 animate-slide-in">
           <div className={`flex items-center gap-3 px-5 py-3 rounded-full shadow-lg backdrop-blur-sm ${notification.type === 'success'
