@@ -84,7 +84,7 @@ const UserNavbar = ({ onToggleSidebar }) => {
                 />
               </Link>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3"
               <button
                 className="p-2 hover:bg-neutral-500 rounded-lg transition-colors active:scale-95 relative"
                 aria-label="Notifications"
