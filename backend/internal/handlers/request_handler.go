@@ -30,6 +30,15 @@ type CreateManpowerRequestInput struct {
     TargetHireDate        *string `json:"target_hire_date"` // รูปแบบ YYYY-MM-DD
 }
 
+// GetAllRequests godoc
+// @Summary Get all manpower requests
+// @Description ดึงรายการ manpower requests ทั้งหมด
+// @Tags Requests
+// @Accept json
+// @Produce json
+// @Success 200 {array} map[string]interface{}
+// @Failure 500 {object} map[string]string
+// @Router /api/user/requests [get]
 func GetManpowerRequestsHandler(c *gin.Context) {
 	role := c.GetString(mw.CtxRoleName)
 	deptID := c.GetInt(mw.CtxDeptID)

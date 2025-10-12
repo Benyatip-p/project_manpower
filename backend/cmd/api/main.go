@@ -6,12 +6,20 @@ import (
 	"mantest/backend/internal/handlers"
 	"mantest/backend/internal/middlewares"
 	"net/http"
-
+	
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	_ "mantest/backend/docs" 
 )
 
+// @title Manpower API
+// @version 1.0
+// @description This is a manpower management system API.
+// @host localhost:8080
+// @BasePath /api
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -40,6 +48,7 @@ func main() {
 		api.GET("/dashboard/overview", handlers.GetDashboardOverview)
 		protected := api.Group("/")
 		protected.Use(middlewares.JWTAuth())
+		api.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		{
 			// protected.GET("/user/profile", handlers.GetUserProfileHandler)
 			// protected.GET("/masterdata", handlers.GetMasterDataHandler)
