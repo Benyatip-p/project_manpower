@@ -6,9 +6,8 @@ const UserProfilePopup = ({ isOpen, onClose, userData }) => {
 
   return (
     <div
-      className="fixed inset-0 flex justify-center items-center z-50" 
+      className="fixed inset-0 bg-[rgba(17,24,39,0.3)] backdrop-blur-sm flex justify-center items-center z-50" 
       onClick={onClose} 
-      style={{ backgroundColor: 'transparent' }} 
     >
       <div
         className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-8 relative"

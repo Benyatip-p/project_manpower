@@ -2,28 +2,28 @@ import React, { useState, useMemo, useEffect } from 'react';
 import UserRowmanage from '../../components/UserRowmanage';
 import Pagination from '../../components/PaginationAdmin';
 import AddUserModal from '../../components/AddUserModal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import { SearchIcon, XIcon, PlusIcon } from '@heroicons/react/solid';
 
 const ITEMS_PER_PAGE = 10;
 
 function UserManage() {
-  const [users, setUsers] = useState([]); 
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/employees'); 
+      const response = await fetch('/api/admin/employees');
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.map((user, index) => ({ 
-            ...user, 
-            id: index + 1, 
-        })));
+        setUsers(data.map((user, index) => ({ ...user, id: index + 1 })));
       } else {
         console.error("Failed to fetch user list, status:", response.status);
       }
@@ -36,7 +36,7 @@ function UserManage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []); 
+  }, []);
 
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -47,7 +47,6 @@ function UserManage() {
       const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
       const employeeId = user.employeeId.toLowerCase();
       const email = user.email.toLowerCase();
-      
       return fullName.includes(searchLower) || employeeId.includes(searchLower) || email.includes(searchLower);
     });
   }, [users, searchTerm]);
@@ -81,30 +80,35 @@ function UserManage() {
 
   const handleDeleteUser = (userId) => {
     const user = users.find(u => u.id === userId);
-    if (window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้: ${user.firstName} ${user.lastName} (${user.employeeId})?`)) {
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-      alert(`ลบผู้ใช้ ${user.firstName} ${user.lastName} สำเร็จ (Mock Delete)`);
+    setUserToDelete(user);
+    setIsConfirmModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (userToDelete) {
+      setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
+      alert(`ลบผู้ใช้ ${userToDelete.firstName} ${userToDelete.lastName} สำเร็จ (Mock Delete)`);
       if (paginatedUsers.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }
     }
+    setIsConfirmModalOpen(false);
+    setUserToDelete(null);
   };
 
   const handleSaveUser = async (userData) => {
     const isEditing = !!editingUser;
     const url = '/api/admin/employees';
-    
     const dataToSubmit = {
         employeeId: userData.employeeId,
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
         password: userData.password,
-        role: userData.role, 
+        role: userData.role,
         department: userData.department,
         position: userData.position,
     };
-    
     if (!isEditing) {
         try {
             const response = await fetch(url, {
@@ -112,9 +116,7 @@ function UserManage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dataToSubmit),
             });
-
             const result = await response.json();
-
             if (response.ok) {
                 alert(`เพิ่มผู้ใช้งานสำเร็จ!`);
                 fetchUsers();
@@ -129,12 +131,11 @@ function UserManage() {
             return;
         }
     } else {
-        setUsers(prevUsers => 
+        setUsers(prevUsers =>
             prevUsers.map(u => u.id === editingUser.id ? { ...userData, id: editingUser.id } : u)
         );
         alert('แก้ไขข้อมูลผู้ใช้งานสำเร็จ! (Mock Edit)');
     }
-
     handleCloseModal();
   };
 
@@ -148,7 +149,6 @@ function UserManage() {
       <div className="max-w-7xl mx-auto">
         <br />
         <h1 className="text-3xl font-bold text-gray-800 mb-6">จัดการผู้ใช้งาน</h1>
-
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="relative w-full sm:w-auto">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -168,7 +168,6 @@ function UserManage() {
               </button>
             )}
           </div>
-
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors w-full sm:w-auto justify-center"
@@ -177,7 +176,6 @@ function UserManage() {
             เพิ่มผู้ใช้งาน
           </button>
         </div>
-
         {loading ? (
             <div className="text-center py-10 text-gray-500 text-lg">
                 กำลังโหลดข้อมูลผู้ใช้งาน...
@@ -199,7 +197,6 @@ function UserManage() {
                         <th className="px-6 py-3 text-center">จัดการ</th>
                     </tr>
                     </thead>
-
                     <tbody>
                     {paginatedUsers.length > 0 ? (
                         paginatedUsers.map(user => (
@@ -220,13 +217,11 @@ function UserManage() {
                     </tbody>
                 </table>
                 </div>
-
                 <div className="mt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="text-sm text-gray-600">
                     แสดง <span className="font-semibold">{currentItemCount}</span> จากทั้งหมด{' '}
                     <span className="font-semibold">{totalItemCount}</span> รายการ
                 </div>
-
                 <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}
@@ -236,12 +231,18 @@ function UserManage() {
             </>
         )}
       </div>
-
       <AddUserModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSave={handleSaveUser}
         editingUser={editingUser}
+      />
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="ยืนยันการลบ"
+        message={`คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้: ${userToDelete?.firstName} ${userToDelete?.lastName}?`}
       />
     </div>
   );
