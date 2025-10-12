@@ -46,8 +46,17 @@ func main() {
 			user := protected.Group("/user")
 			{
 				user.GET("/requests", handlers.GetManpowerRequestsHandler)
-				user.POST("/requests", handlers.CreateManpowerRequestHandler)
+				// user.POST("/requests", handlers.CreateManpowerRequestHandler)
+
+				user.POST("/requests/submit", handlers.CreateAndSubmitManpowerRequestHandler)
+				user.POST("/requests/:id/decide", handlers.DecideManpowerRequestHandler)
 			}
+
+			// approve := protected.Group("/approve")
+			// {
+			// 	approve.GET("/requests", handlers.GetManpowerRequestsHandler)
+				// user.POST("/requests", handlers.CreateManpowerRequestHandler)
+			// }
 
 			admin := protected.Group("/admin")
 			{

@@ -180,7 +180,7 @@ VALUES
 ('E001', 'แอดมิน', 'ทดสอบ', 'admin@example.com', '1234', 4, 4, 5, 1),
 ('E002', 'ผู้ใช้งาน', 'ทดสอบ', 'user@example.com', '1234', 3, 3, 4, 3),
 ('E003', 'ผู้จัดการแผนก', 'ทดสอบ', 'manager@example.com', '1234', 1, 3, 4, 2),
-('E004', 'ผู้อำนวยการฝ่าย', 'ทดสอบ', 'director@example.com', '1234', 8, 1, 4, 2),
+('E004', 'ผู้อำนวยการฝ่าย', 'ทดสอบ', 'director@example.com', '1234', 8, 3, 4, 2),
 ('E005', 'เจ้าหน้าที่สรรหา', 'ทดสอบ', 'recruiter@example.com', '1234', 2, 2, 6, 2),
 ('E006', 'ผู้จัดการแผนก hr', 'ทดสอบ', 'manager_hr@example.com', '1234', 1, 2, 6, 2),
 ('E007', 'ผู้อำนวยการฝ่าย hr', 'ทดสอบ', 'director_hr@example.com', '1234', 8, 2, 6, 2);
@@ -622,3 +622,8 @@ INSERT INTO manpower_requests (
   'ใช้ Excel/SQL ได้ดี, รู้จัก Looker/Power BI จะพิจารณาเป็นพิเศษ',
   'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
 );
+
+UPDATE manpower_requests
+SET hr_status = 'WAITING_RECRUITER'
+WHERE hr_status = 'HR_INTAKE'
+  AND origin_status = 'DIR_APPROVED';
