@@ -1,0 +1,28 @@
+info:
+  contact: {}
+paths:
+  /api/user/requests:
+    get:
+      consumes:
+      - application/json
+      description: ดึงรายการ manpower requests ทั้งหมด
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get all manpower requests
+      tags:
+      - Requests
+swagger: "2.0"
