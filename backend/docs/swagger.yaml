@@ -1,28 +1,356 @@
+basePath: /api
+definitions:
+  handlers.CreateManpowerRequestInput:
+    properties:
+      contract_type_id:
+        type: integer
+      education_level_id:
+        type: integer
+      employment_type_id:
+        type: integer
+      experience_id:
+        type: integer
+      gender_id:
+        type: integer
+      max_age:
+        type: integer
+      min_age:
+        type: integer
+      nationality_id:
+        type: integer
+      num_required:
+        type: integer
+      reason_id:
+        type: integer
+      required_position_name:
+        type: string
+      special_qualifications:
+        type: string
+      target_hire_date:
+        description: รูปแบบ YYYY-MM-DD
+        type: string
+    required:
+    - contract_type_id
+    - employment_type_id
+    - num_required
+    - reason_id
+    - required_position_name
+    type: object
+  handlers.CreateSubmitResponse:
+    properties:
+      created_at:
+        example: "2025-10-12T15:12:00Z"
+        type: string
+      created_by:
+        example: E101
+        type: string
+      doc_number:
+        example: PQ25100001
+        type: string
+      hr_status:
+        example: NONE
+        type: string
+      message:
+        example: Submitted successfully
+        type: string
+      origin_status:
+        example: SUBMITTED
+        type: string
+      overall_status:
+        example: IN_PROGRESS
+        type: string
+      request_id:
+        example: 123
+        type: integer
+    type: object
+  handlers.DecideRequest:
+    properties:
+      action:
+        description: APPROVE / REJECT / RETURN
+        type: string
+      notes:
+        type: string
+    required:
+    - action
+    type: object
+  handlers.DecideResponse:
+    properties:
+      doc_number:
+        example: PQ24110026
+        type: string
+      hr_status:
+        example: WAITING_RECRUITER
+        type: string
+      message:
+        example: decision stored
+        type: string
+      origin_status:
+        example: DIR_APPROVED
+        type: string
+      overall_status:
+        example: IN_PROGRESS
+        type: string
+      request_id:
+        example: 15
+        type: integer
+    type: object
+  models.AuthResponse:
+    properties:
+      email:
+        type: string
+      role:
+        type: string
+      token:
+        type: string
+    type: object
+  models.DashboardPie:
+    properties:
+      approved:
+        type: integer
+      waiting:
+        type: integer
+    type: object
+  models.DashboardResponse:
+    properties:
+      approval_pie:
+        $ref: '#/definitions/models.DashboardPie'
+      per_department:
+        items:
+          $ref: '#/definitions/models.DeptSeries'
+        type: array
+      totals:
+        $ref: '#/definitions/models.DashboardTotals'
+    type: object
+  models.DashboardTotals:
+    properties:
+      approved:
+        type: integer
+      pending:
+        type: integer
+      rejected:
+        type: integer
+      requests:
+        type: integer
+    type: object
+  models.DeptSeries:
+    properties:
+      dept_id:
+        type: integer
+      dept_name:
+        type: string
+      new_hires:
+        type: integer
+      resigns:
+        type: integer
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+host: localhost:8080
 info:
   contact: {}
+  description: This is a manpower management system API.
+  title: Manpower API
+  version: "1.0"
 paths:
-  /api/user/requests:
+  /dashboard/overview:
     get:
-      consumes:
-      - application/json
-      description: ดึงรายการ manpower requests ทั้งหมด
+      description: 'สรุปตัวเลขบนแดชบอร์ด: จำนวนคำขอทั้งหมด/รออนุมัติ/อนุมัติ/ไม่อนุมัติ,
+        ข้อมูล pie (approved vs waiting) และสถิติรายฝ่าย (พนักงานเข้าใหม่/ลาออก)'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            items:
-              additionalProperties: true
-              type: object
-            type: array
+            $ref: '#/definitions/models.DashboardResponse'
         "500":
           description: Internal Server Error
           schema:
             additionalProperties:
               type: string
             type: object
+      security:
+      - BearerAuth: []
+      summary: Dashboard overview
+      tags:
+      - Dashboard
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: 'ตรวจสอบผู้ใช้และคืน JWT token (แนบใน Authorization: Bearer <token>)'
+      parameters:
+      - description: email & password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login and get JWT token
+      tags:
+      - Auth
+  /user/requests:
+    get:
+      consumes:
+      - application/json
+      description: ดึงรายการ manpower requests ตามสิทธิ์ (Admin/Approve เห็นทั้งหมด,
+        User เห็นเฉพาะกอง/แผนกตัวเอง)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'data: []ManpowerRequest'
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
       summary: Get all manpower requests
       tags:
       - Requests
+  /user/requests/{id}/decide:
+    post:
+      consumes:
+      - application/json
+      description: ผู้อนุมัติตาม lane ของตัวเอง ทำการตัดสินใจในคำขอ (APPROVE / REJECT
+        / RETURN)
+      parameters:
+      - description: request_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 'action: APPROVE | REJECT | RETURN'
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.DecideRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.DecideResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Approve/Reject/Return a request
+      tags:
+      - Approvals
+  /user/requests/submit:
+    post:
+      consumes:
+      - application/json
+      description: ผู้ใช้สร้างคำขอและส่งเข้ากระบวนการอนุมัติทันที (origin_status=SUBMITTED)
+      parameters:
+      - description: payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateManpowerRequestInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handlers.CreateSubmitResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create & submit manpower request
+      tags:
+      - Requests
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
+tags:
+- name: Auth
+- name: Requests
+- name: Approvals
+- name: Dashboard

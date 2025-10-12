@@ -8,6 +8,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// LoginHandler godoc
+// @Summary      Login and get JWT token
+// @Description  ตรวจสอบผู้ใช้และคืน JWT token (แนบใน Authorization: Bearer <token>)
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      models.LoginRequest  true  "email & password"
+// @Success      200   {object}  models.AuthResponse
+// @Failure      400   {object}  map[string]string
+// @Failure      401   {object}  map[string]string
+// @Router       /login [post]
 func LoginHandler(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

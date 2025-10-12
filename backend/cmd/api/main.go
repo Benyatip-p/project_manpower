@@ -1,5 +1,23 @@
 package main
 
+// @title Manpower API
+// @version 1.0
+// @description This is a manpower management system API.
+// @host localhost:8080
+// @BasePath /api
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
+// @tag.name Auth
+
+// @tag.name Requests
+
+// @tag.name Approvals
+
+// @tag.name Dashboard
+
 import (
 	"log"
 	"mantest/backend/internal/database"
@@ -15,11 +33,6 @@ import (
 	_ "mantest/backend/docs" 
 )
 
-// @title Manpower API
-// @version 1.0
-// @description This is a manpower management system API.
-// @host localhost:8080
-// @BasePath /api
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -38,7 +51,8 @@ func main() {
 	router.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "API Server is running!")
 	})
-
+	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	
 	api := router.Group("/api")
 	{
 		api.POST("/login", handlers.LoginHandler)
@@ -48,7 +62,6 @@ func main() {
 		api.GET("/dashboard/overview", handlers.GetDashboardOverview)
 		protected := api.Group("/")
 		protected.Use(middlewares.JWTAuth())
-		api.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		{
 			// protected.GET("/user/profile", handlers.GetUserProfileHandler)
 			// protected.GET("/masterdata", handlers.GetMasterDataHandler)

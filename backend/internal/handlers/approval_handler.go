@@ -12,6 +12,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+// DecideResponse
+type DecideResponse struct {
+    Message       string `json:"message" example:"decision stored"`
+    RequestID     int    `json:"request_id" example:"15"`
+    DocNumber     string `json:"doc_number" example:"PQ24110026"`
+    OriginStatus  string `json:"origin_status" example:"DIR_APPROVED"`
+    HRStatus      string `json:"hr_status" example:"WAITING_RECRUITER"`
+    OverallStatus string `json:"overall_status" example:"IN_PROGRESS"`
+}
 
 type DecideRequest struct {
 	Action string `json:"action" binding:"required"` // APPROVE / REJECT / RETURN
@@ -84,8 +93,22 @@ func resolveActorRoleForRequest(
 	}
 }
 
-// ===== handler =====
-
+// DecideManpowerRequestHandler godoc
+// @Summary      Approve/Reject/Return a request
+// @Description  ผู้อนุมัติตาม lane ของตัวเอง ทำการตัดสินใจในคำขอ (APPROVE / REJECT / RETURN)
+// @Tags         Approvals
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id    path      int                 true  "request_id"
+// @Param        body  body      DecideRequest       true  "action: APPROVE | REJECT | RETURN"
+// @Success      200   {object}  DecideResponse
+// @Failure      400   {object}  map[string]string
+// @Failure      401   {object}  map[string]string
+// @Failure      403   {object}  map[string]string
+// @Failure      404   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /user/requests/{id}/decide [post]
 func DecideManpowerRequestHandler(c *gin.Context) {
 	// path param
 	idStr := c.Param("id")

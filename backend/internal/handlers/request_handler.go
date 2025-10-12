@@ -14,6 +14,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// CreateSubmitResponse
+type CreateSubmitResponse struct {
+    Message       string `json:"message"        example:"Submitted successfully"`
+    RequestID     int    `json:"request_id"     example:"123"`
+    DocNumber     string `json:"doc_number"     example:"PQ25100001"`
+    CreatedAt     string `json:"created_at"     example:"2025-10-12T15:12:00Z"`
+    CreatedBy     string `json:"created_by"     example:"E101"`
+    OriginStatus  string `json:"origin_status"  example:"SUBMITTED"`
+    HRStatus      string `json:"hr_status"      example:"NONE"`
+    OverallStatus string `json:"overall_status" example:"IN_PROGRESS"`
+}
+
+// CreateSubmitResponse
 type CreateManpowerRequestInput struct {
     RequiredPositionName string  `json:"required_position_name" binding:"required"`
     NumRequired           int     `json:"num_required" binding:"required"`
@@ -30,15 +43,16 @@ type CreateManpowerRequestInput struct {
     TargetHireDate        *string `json:"target_hire_date"` // รูปแบบ YYYY-MM-DD
 }
 
-// GetAllRequests godoc
-// @Summary Get all manpower requests
-// @Description ดึงรายการ manpower requests ทั้งหมด
-// @Tags Requests
-// @Accept json
-// @Produce json
-// @Success 200 {array} map[string]interface{}
-// @Failure 500 {object} map[string]string
-// @Router /api/user/requests [get]
+// GetManpowerRequestsHandler godoc
+// @Summary      Get all manpower requests
+// @Description  ดึงรายการ manpower requests ตามสิทธิ์ (Admin/Approve เห็นทั้งหมด, User เห็นเฉพาะกอง/แผนกตัวเอง)
+// @Tags         Requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  map[string]interface{}  "data: []ManpowerRequest"
+// @Failure      500  {object}  map[string]string
+// @Router       /user/requests [get]
 func GetManpowerRequestsHandler(c *gin.Context) {
 	role := c.GetString(mw.CtxRoleName)
 	deptID := c.GetInt(mw.CtxDeptID)
@@ -167,6 +181,19 @@ LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 	})
 }
 
+// CreateAndSubmitManpowerRequestHandler godoc
+// @Summary      Create & submit manpower request
+// @Description  ผู้ใช้สร้างคำขอและส่งเข้ากระบวนการอนุมัติทันที (origin_status=SUBMITTED)
+// @Tags         Requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        body  body      CreateManpowerRequestInput  true  "payload"
+// @Success      201   {object}  CreateSubmitResponse
+// @Failure      400   {object}  map[string]string
+// @Failure      401   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /user/requests/submit [post]
 func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
     empID := c.GetString(mw.CtxEmployeeID)
     deptID := c.GetInt(mw.CtxDeptID)

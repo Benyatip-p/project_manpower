@@ -8,6 +8,40 @@ import (
     "github.com/gin-gonic/gin"
 )
 
+type DashboardResponse struct {
+    Totals        TotalsSummary `json:"totals"`
+    ApprovalPie   PieSummary    `json:"approval_pie"`
+    PerDepartment []DeptSeries  `json:"per_department"`
+}
+
+type TotalsSummary struct {
+    Requests int `json:"requests"`
+    Pending  int `json:"pending"`
+    Approved int `json:"approved"`
+    Rejected int `json:"rejected"`
+}
+
+type PieSummary struct {
+    Approved int `json:"approved"`
+    Waiting  int `json:"waiting"`
+}
+
+type DeptSeries struct {
+    DeptID   int    `json:"dept_id"`
+    DeptName string `json:"dept_name"`
+    NewHires int    `json:"new_hires"`
+    Resigns  int    `json:"resigns"`
+}
+
+// GetDashboardOverview godoc
+// @Summary      Dashboard overview
+// @Description  สรุปตัวเลขบนแดชบอร์ด: จำนวนคำขอทั้งหมด/รออนุมัติ/อนุมัติ/ไม่อนุมัติ, ข้อมูล pie (approved vs waiting) และสถิติรายฝ่าย (พนักงานเข้าใหม่/ลาออก)
+// @Tags         Dashboard
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  models.DashboardResponse
+// @Failure      500  {object}  map[string]string
+// @Router       /dashboard/overview [get]
 func GetDashboardOverview(c *gin.Context) {
     var resp models.DashboardResponse
 
