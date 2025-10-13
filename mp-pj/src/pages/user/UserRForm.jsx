@@ -156,9 +156,13 @@ const UserRForm = () => {
     console.log('กำลังส่งข้อมูล:', dataToSubmit);
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/user/requests/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, 
+        },
         body: JSON.stringify(dataToSubmit)
       });
 

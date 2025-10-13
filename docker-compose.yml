@@ -1,22 +1,21 @@
 services:
-  frontend:
+  nginx:
     build:
-      context: ./mp-pj
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
-      - "8080:5173" 
-    volumes:
-      - ./mp-pj:/app 
-      - /app/node_modules 
-    restart: unless-stopped
+      - "8080:80"
     depends_on:
       - backend
+    restart: unless-stopped
 
   backend:
     build:
       context: ./backend
     env_file:
       - ./.env
+    ports:
+      - "8088:8080"
     restart: unless-stopped
     depends_on:
       db:
