@@ -29,7 +29,7 @@ export const rawDocuments = [
     educationLevel: 'ปวส. สาขาช่างเชื่อมโลหะ',
     specialQualifications: 'มีความสามารถในการเชื่อม TIG, MIG และสามารถอ่านแบบได้เป็นอย่างดี'
   },
-  { 
+  {
     id: 2, 
     documentNumber: 'PQ24110013', 
     documentDate: '24/11/2024', 
