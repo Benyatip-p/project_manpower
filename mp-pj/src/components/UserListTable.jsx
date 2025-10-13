@@ -1,99 +1,94 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-// สมมติว่ามี component สำหรับแสดง Badge สถานะ
-import StatusBadge from './StatusBadge'; 
+import { TrashIcon, EyeIcon } from "@heroicons/react/solid";
+import ApproverStatusCell from './ApproverStatusCell';
 
-// เปลี่ยน prop name เป็น documents เพื่อให้สอดคล้องกับ Usermainpage.jsx
-const UserListTable = ({ documents, isLoading, role, onDelete }) => {
-    // กำหนดหัวตาราง
-    const headers = [
-        "วันที่เอกสาร",
-        "เลขที่เอกสาร",
-        "ตำแหน่งที่ต้องการ",
-        "จำนวน",
-        "สถานะ",
-        "การดำเนินการ",
-    ];
+const UserListTable = ({ 
+  documents, 
+  isLoading, 
+  onDelete,
+  role = 'user'
+}) => {
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center py-12 border-t border-gray-200 mt-4">
-                <p className="text-gray-500">กำลังโหลดข้อมูลรายการคำร้อง...</p>
-            </div>
-        );
-    }
+  if (isLoading) {
+    return <div className="p-4 text-center text-gray-500">กำลังโหลดข้อมูล...</div>;
+  }
+  if (!documents || documents.length === 0) {
+    return <div className="p-4 text-center text-gray-500">ไม่พบเอกสาร</div>;
+  }
 
-    // ตรวจสอบ documents.length แทน filteredDocuments.length
-    if (!documents || documents.length === 0) {
-        return (
-            <div className="text-center py-12 border-t border-gray-200 mt-4">
-                <p className="text-gray-500 text-lg">ไม่พบรายการคำร้อง</p>
-                <p className="text-gray-400 text-sm mt-2">กรุณาสร้างคำร้องใหม่ หรือตรวจสอบเงื่อนไขการค้นหา</p>
-            </div>
-        );
-    }
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-200 shadow-md">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left text-gray-500">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+            <tr>
+              <th scope="col" colSpan="4" className="px-6 pt-3"></th>
+              <th scope="colgroup" colSpan="3" className="px-6 pt-3 text-center">
+                สถานะ
+              </th>
+              <th scope="col" colSpan="2" className="px-6 pt-3"></th>
+            </tr>
+            <tr>
+              <th scope="col" className="px-6 py-3 text-center">No.</th>
+              <th scope="col" className="px-6 py-3 text-center">เลขที่เอกสาร</th>
+              <th scope="col" className="px-6 py-3 text-center">วันที่เอกสาร</th>
+              <th scope="col" className="px-6 py-3 text-center">แผนก</th>
+              <th scope="col" className="px-6 py-3 text-center">ต้นสังกัด</th>
+              <th scope="col" className="px-6 py-3 text-center">HR</th>
+              <th scope="col" className="px-6 py-3 text-center">ฝ่ายบริหาร</th>
+              <th scope="col" className="px-6 py-3 text-center">วันที่ครบกำหนด</th>
+              <th scope="col" className="px-6 py-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          
+          <tbody className="bg-white divide-y divide-gray-200">
+            {documents.map((doc, index) => {
+              let basePath;
+              if (role === 'user') {
+                basePath = '/user';
+              } else if (role === 'approve' || role === 'manager' || role === 'hr' || role === 'ceo') {
+                basePath = '/approver';
+              } else {
+                basePath = `/${role}`;
+              }
 
-    return (
-        <div className="overflow-x-auto shadow-md sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                    <tr>
-                        {headers.map((header, index) => (
-                            <th
-                                key={index}
-                                scope="col"
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                            >
-                                {header}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                    {documents.map((request) => (
-                        <tr key={request.request_id} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {/* แปลงวันที่ให้เป็นรูปแบบที่อ่านง่าย */}
-                                {new Date(request.doc_date).toLocaleDateString('th-TH', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric',
-                                })}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-indigo-600">
-                                {request.doc_number}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {request.required_position_name}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {request.num_required}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                {/* ใช้ DisplayStatus จาก Backend */}
-                                <StatusBadge status={request.display_status} /> 
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <Link
-                                    to={`/user/view/${request.request_id}`}
-                                    className="text-indigo-600 hover:text-indigo-900"
-                                >
-                                    รายละเอียด
-                                </Link>
-                                {/* ปุ่มลบสำหรับสาธิต */}
-                                <button
-                                    onClick={() => onDelete(request.request_id, request.doc_number)}
-                                    className="text-red-600 hover:text-red-900 ml-2"
-                                >
-                                    ลบ
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+              return (
+                <tr key={doc.id || index} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-center">{index + 1}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">{doc.documentNumber}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">{doc.documentDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">{doc.department}</td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.managerStatus} /></td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.hrStatus} /></td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.ceoStatus} /></td>
+
+                  <td className="px-6 py-4 whitespace-nowrap text-center">{doc.dueDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="flex items-center justify-center space-x-4">
+                      <Link
+                        to={`${basePath}/view/${doc.id}`}
+                        className="text-gray-400 hover:text-blue-600 focus:outline-none"
+                        title="ดูรายละเอียด"
+                      >
+                        <EyeIcon className="w-5 h-5" />
+                      </Link>
+                      {role === 'user' && (
+                        <button onClick={() => onDelete(doc.id, doc.documentNumber)} className="text-gray-400 hover:text-red-600 focus:outline-none" title="ลบเอกสาร">
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 };
 
 export default UserListTable;

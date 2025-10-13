@@ -190,10 +190,11 @@ const UserRForm = () => {
 
       console.log('Response จาก Server:', data);
 
-      if (response.ok) { 
+      if (response.ok) {
         console.log('บันทึกข้อมูลสำเร็จ DocNo:', data.doc_number);
         showNotification(`บันทึกข้อมูลเสร็จสิ้น: ${data.doc_number}`, 'success');
-        setTimeout(() => handleClear(), 1500);
+        // Navigate back to main page after successful submission
+        setTimeout(() => navigate('/user'), 1500);
       } else {
         const errorMessage = data.message || data.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
         console.error('บันทึกไม่สำเร็จ:', errorMessage);

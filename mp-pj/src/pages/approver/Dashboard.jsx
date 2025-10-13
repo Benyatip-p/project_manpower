@@ -12,7 +12,7 @@ import { generateDashboardData } from '../../data/mockData';
 const fetchDashboardData = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      const dashboardData = generateDashboardData(); // <<-- เรียกใช้ฟังก์ชันที่ import มา
+      const dashboardData = generateDashboardData();
       resolve(dashboardData);
     }, 1500); 
   });

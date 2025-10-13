@@ -26,11 +26,12 @@ const Approve = () => {
         const token = localStorage.getItem('jwt_token');
         if (!token) {
           console.error('No JWT token found');
-          setIsLoading(false);
+          alert('Token not found. Redirecting to login.');
+          window.location.href = '/login';
           return;
         }
 
-        const response = await fetch('/api/user/requests', {
+        const response = await fetch('/api/approve/requests', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -43,33 +44,37 @@ const Approve = () => {
           if (data.success && data.data) {
             // Transform backend data to match frontend format
             const transformedData = data.data.map(item => ({
-              id: item.RequestID,
-              documentNumber: item.DocNumber,
-              department: item.DepartmentName,
-              section: item.SectionName,
-              position: item.PositionName,
-              requesterName: item.RequesterName,
-              employmentType: item.EmploymentType,
-              contractType: item.ContractType,
-              requestReason: item.Reason,
-              requiredPosition: item.RequiredPositionName,
-              ageFrom: item.MinAge,
-              ageTo: item.MaxAge,
-              gender: item.Gender,
-              nationality: item.Nationality,
-              experience: item.Experience,
-              educationLevel: item.EducationLevel,
-              specialQualifications: item.SpecialQualifications,
-              managerStatus: item.OriginStatus,
-              hrStatus: item.HRStatus,
-              ceoStatus: item.OverallStatus,
-              createdAt: item.CreatedAt,
-              updatedAt: item.UpdatedAt
+              id: item.request_id,
+              documentNumber: item.doc_number,
+              documentDate: item.doc_date,
+              department: item.department_name,
+              section: item.section_name,
+              position: item.pos_name,
+              requesterName: item.requester_name,
+              employmentType: item.employment_type_name,
+              contractType: item.contract_type_name,
+              requestReason: item.reason_name,
+              requiredPosition: item.required_position_name,
+              ageFrom: item.min_age,
+              ageTo: item.max_age,
+              gender: item.gender_name,
+              nationality: item.nat_name,
+              experience: item.exp_name,
+              educationLevel: item.edu_name,
+              specialQualifications: item.special_qualifications,
+              managerStatus: item.origin_status || 'NONE',
+              hrStatus: item.hr_status || 'NONE',
+              ceoStatus: item.overall_status || 'NONE',
+              dueDate: item.target_hire_date,
+              createdAt: item.created_at,
+              updatedAt: item.updated_at
             }));
             setDocuments(transformedData);
           }
         } else {
           console.error('Failed to fetch requests:', response.status);
+          const errorText = await response.text();
+          console.error('Error response:', errorText);
         }
       } catch (error) {
         console.error('Error fetching requests:', error);

@@ -3,15 +3,181 @@ package handlers
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"mantest/backend/internal/database"
+	"mantest/backend/internal/models"
 	mw "mantest/backend/internal/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
+
+// GetRequestsForApprovalHandler - Get requests that the current user can approve
+func GetRequestsForApprovalHandler(c *gin.Context) {
+	role := c.GetString(mw.CtxRoleName)
+	deptID := c.GetInt(mw.CtxDeptID)
+	secID := c.GetInt(mw.CtxSectionID)
+	posID := c.GetInt(mw.CtxPosID)
+
+	if role == "" || deptID == 0 || posID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing auth claims"})
+		return
+	}
+
+	baseSelect := `
+	SELECT
+		mr.request_id,
+		mr.doc_number,
+		mr.doc_date,
+		mr.requesting_dept_id,
+		d.dept_name,
+		mr.requesting_section_id,
+		s.section_name,
+		mr.requesting_pos_id,
+		p.pos_name,
+		mr.employee_id,
+		(e.first_name || ' ' || e.last_name) AS requester_name,
+		et.et_name AS employment_type_name,
+		ct.ct_name AS contract_type_name,
+		rr.rr_name AS reason_name,
+		mr.required_position_name,
+		mr.min_age,
+		mr.max_age,
+		COALESCE(g.gender_name,'') AS gender_name,
+		COALESCE(n.nat_name,'')    AS nat_name,
+		COALESCE(exp.exp_name,'')  AS exp_name,
+		COALESCE(edu.edu_name,'')  AS edu_name,
+		mr.special_qualifications,
+		mr.origin_status,
+		mr.hr_status,
+		mr.overall_status,
+		mr.target_hire_date,
+		mr.created_at,
+		mr.updated_at
+	FROM manpower_requests mr
+	LEFT JOIN departments d   ON mr.requesting_dept_id    = d.dept_id
+	LEFT JOIN sections   s    ON mr.requesting_section_id = s.section_id
+	LEFT JOIN positions  p    ON mr.requesting_pos_id     = p.pos_id
+	LEFT JOIN employees  e    ON mr.employee_id           = e.employee_id
+	LEFT JOIN employment_types et ON mr.employment_type_id = et.et_id
+	LEFT JOIN contract_types   ct ON mr.contract_type_id   = ct.ct_id
+	LEFT JOIN request_reasons  rr ON mr.reason_id          = rr.rr_id
+	LEFT JOIN genders g           ON mr.gender_id          = g.gender_id
+	LEFT JOIN nationalities n     ON mr.nationality_id     = n.nat_id
+	LEFT JOIN experiences exp     ON mr.experience_id      = exp.exp_id
+	LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
+	`
+
+	var query string
+	var args []interface{}
+
+	// Get position name
+	var posName string
+	if err := database.DB.QueryRow(`SELECT pos_name FROM positions WHERE pos_id=$1`, posID).Scan(&posName); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get position"})
+		return
+	}
+
+	// Get HR department ID
+	var hrDeptID int
+	if err := database.DB.QueryRow(`SELECT dept_id FROM departments WHERE dept_name=$1`, deptHRName).Scan(&hrDeptID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get HR department"})
+		return
+	}
+
+	// Build WHERE clause based on role and position
+	var whereClause string
+
+	if deptID == hrDeptID {
+		// HR Department
+		switch posName {
+		case posRecruiter:
+			whereClause = "WHERE mr.hr_status = 'WAITING_RECRUITER'"
+		case posManager:
+			whereClause = "WHERE mr.hr_status = 'WAITING_HR_MANAGER'"
+		case posDirector:
+			whereClause = "WHERE mr.hr_status = 'WAITING_HR_DIRECTOR'"
+		default:
+			whereClause = "WHERE 1=0" // No permissions
+		}
+	} else {
+		// Origin Department
+		switch posName {
+		case posManager:
+			whereClause = "WHERE mr.origin_status = 'SUBMITTED' AND mr.requesting_dept_id = $1"
+			args = append(args, deptID)
+			if secID > 0 {
+				whereClause += " AND mr.requesting_section_id = $2"
+				args = append(args, secID)
+			}
+		case posDirector:
+			whereClause = "WHERE mr.origin_status = 'MGR_APPROVED' AND mr.requesting_dept_id = $1"
+			args = append(args, deptID)
+		default:
+			whereClause = "WHERE 1=0" // No permissions
+		}
+	}
+
+	query = baseSelect + " " + whereClause + " ORDER BY mr.created_at DESC"
+
+	rows, err := database.DB.Query(query, args...)
+	if err != nil {
+		log.Println("Error querying requests for approval:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "query error"})
+		return
+	}
+	defer rows.Close()
+
+	var requests []models.ManpowerRequest
+
+	for rows.Next() {
+		var r models.ManpowerRequest
+		err := rows.Scan(
+			&r.RequestID,
+			&r.DocNumber,
+			&r.DocDate,
+			&r.DepartmentID,
+			&r.DepartmentName,
+			&r.SectionID,
+			&r.SectionName,
+			&r.PositionID,
+			&r.PositionName,
+			&r.EmployeeID,
+			&r.RequesterName,
+			&r.EmploymentType,
+			&r.ContractType,
+			&r.Reason,
+			&r.RequiredPositionName,
+			&r.MinAge,
+			&r.MaxAge,
+			&r.Gender,
+			&r.Nationality,
+			&r.Experience,
+			&r.EducationLevel,
+			&r.SpecialQualifications,
+			&r.OriginStatus,
+			&r.HRStatus,
+			&r.OverallStatus,
+			&r.TargetHireDate,
+			&r.CreatedAt,
+			&r.UpdatedAt,
+		)
+		if err != nil {
+			log.Println("Scan error:", err)
+			continue
+		}
+		requests = append(requests, r)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    requests,
+	})
+}
+
 // DecideResponse
 type DecideResponse struct {
     Message       string `json:"message" example:"decision stored"`

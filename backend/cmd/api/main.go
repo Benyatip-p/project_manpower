@@ -73,16 +73,16 @@ func main() {
 
 				user.POST("/requests/submit", handlers.CreateAndSubmitManpowerRequestHandler)
 				user.POST("/requests/:id/decide", handlers.DecideManpowerRequestHandler)
+				user.DELETE("/requests/:id", handlers.DeleteManpowerRequestHandler)
 			}
 
 			protected.GET("/requests/:id", handlers.GetManpowerRequestByIDHandler)
 			// protected.POST("/requests/approve/:id", handlers.ApproveManpowerRequestHandler)
 
-			// approve := protected.Group("/approve")
-			// {
-			// 	approve.GET("/requests", handlers.GetManpowerRequestsHandler)
-				// user.POST("/requests", handlers.CreateManpowerRequestHandler)
-			// }
+			approve := protected.Group("/approve")
+			{
+				approve.GET("/requests", handlers.GetRequestsForApprovalHandler)
+			}
 
 			admin := protected.Group("/admin")
 			{

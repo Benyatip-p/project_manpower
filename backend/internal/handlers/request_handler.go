@@ -407,3 +407,69 @@ func GetManpowerRequestByIDHandler(c *gin.Context) {
 		"data":    r,
 	})
 }
+
+// DeleteManpowerRequestHandler (For user to delete their own requests)
+func DeleteManpowerRequestHandler(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Request ID is required"})
+		return
+	}
+
+	requestID, err := strconv.Atoi(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request ID"})
+		return
+	}
+
+	// Get user info from context
+	empID := c.GetString(mw.CtxEmployeeID)
+	if empID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	// Check if the request belongs to the user and is in a deletable state
+	var ownerID string
+	var status string
+	err = database.DB.QueryRow(`
+		SELECT employee_id, overall_status
+		FROM manpower_requests
+		WHERE request_id = $1
+	`, requestID).Scan(&ownerID, &status)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Request not found"})
+			return
+		}
+		log.Printf("Error querying request: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	// Only allow deletion if the user owns the request and it's not approved
+	if ownerID != empID {
+		log.Printf("Forbidden: User %s tried to delete request %d owned by %s", empID, requestID, ownerID)
+		c.JSON(http.StatusForbidden, gin.H{"error": "You can only delete your own requests"})
+		return
+	}
+
+	if status == "APPROVED" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete approved requests"})
+		return
+	}
+
+	// Delete the request
+	_, err = database.DB.Exec(`DELETE FROM manpower_requests WHERE request_id = $1`, requestID)
+	if err != nil {
+		log.Printf("Error deleting request: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Request deleted successfully",
+	})
+}

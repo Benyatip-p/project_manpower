@@ -9,7 +9,7 @@ const ApproveNavbar = ({ onToggleSidebar }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const [homePath, setHomePath] = useState('/approver');
+  const [homePath, setHomePath] = useState('/approver/dashboard');
 
   useEffect(() => {
     const role = localStorage.getItem('user_role');
