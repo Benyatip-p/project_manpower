@@ -17,7 +17,13 @@ function UserManage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/employees'); 
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/admin/employees',{
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // ← ต้องใส่ตรงนี้
+        },
+      }); 
       if (response.ok) {
         const data = await response.json();
         setUsers(data.map((user, index) => ({ 

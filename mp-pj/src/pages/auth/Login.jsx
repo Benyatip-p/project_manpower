@@ -35,6 +35,7 @@ const Login = () => {
 
       const { token, role, email: userEmail } = data; 
       localStorage.setItem('jwt_token', token);
+      localStorage.setItem('token', data.token);
       localStorage.setItem('user_role', role);
       localStorage.setItem('userEmail', userEmail); 
 
