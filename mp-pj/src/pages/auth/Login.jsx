@@ -37,6 +37,7 @@ const Login = () => {
       localStorage.setItem('jwt_token', token);
       localStorage.setItem('user_role', role);
       localStorage.setItem('userEmail', userEmail); 
+      localStorage.setItem('token', data.token);
 
       switch (role.toLowerCase()) {
         case 'admin':
