@@ -75,6 +75,9 @@ func main() {
 				user.POST("/requests/:id/decide", handlers.DecideManpowerRequestHandler)
 			}
 
+			protected.GET("/requests/:id", handlers.GetManpowerRequestByIDHandler)
+			// protected.POST("/requests/approve/:id", handlers.ApproveManpowerRequestHandler)
+
 			// approve := protected.Group("/approve")
 			// {
 			// 	approve.GET("/requests", handlers.GetManpowerRequestsHandler)
@@ -84,7 +87,9 @@ func main() {
 			admin := protected.Group("/admin")
 			{
 				admin.GET("/employees", handlers.GetEmployeesHandler)
-				admin.POST("/employees", handlers.CreateEmployeeHandler) 
+				admin.POST("/employees", handlers.CreateEmployeeHandler)
+				admin.PUT("/employees/:employeeID", handlers.UpdateEmployeeHandler)
+				admin.DELETE("/employees/:employeeID", handlers.DeleteEmployeeHandler)
 			}
 		}
 	}

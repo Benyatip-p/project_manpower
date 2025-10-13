@@ -1,23 +1,84 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import UserStatusDropdown from '../../components/UserStatusDropdown';
 import UserListTable from '../../components/UserListTable';
 import Pagination from '../../components/Pagination';
-import { rawDocuments as mockApiData } from '../../data/mockData';
 
 const Approve = () => {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
+  const [userRole, setUserRole] = useState('');
 
   const [inputDocNumber, setInputDocNumber] = useState('');
   const [inputStatus, setInputStatus] = useState('');
 
   useEffect(() => {
-    setTimeout(() => {
-      setDocuments(mockApiData);
-      setIsLoading(false);
-    }, 1000);
+    const role = localStorage.getItem('user_role');
+    if (role) {
+      setUserRole(role.toLowerCase());
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+          console.error('No JWT token found');
+          setIsLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/user/requests', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            // Transform backend data to match frontend format
+            const transformedData = data.data.map(item => ({
+              id: item.RequestID,
+              documentNumber: item.DocNumber,
+              department: item.DepartmentName,
+              section: item.SectionName,
+              position: item.PositionName,
+              requesterName: item.RequesterName,
+              employmentType: item.EmploymentType,
+              contractType: item.ContractType,
+              requestReason: item.Reason,
+              requiredPosition: item.RequiredPositionName,
+              ageFrom: item.MinAge,
+              ageTo: item.MaxAge,
+              gender: item.Gender,
+              nationality: item.Nationality,
+              experience: item.Experience,
+              educationLevel: item.EducationLevel,
+              specialQualifications: item.SpecialQualifications,
+              managerStatus: item.OriginStatus,
+              hrStatus: item.HRStatus,
+              ceoStatus: item.OverallStatus,
+              createdAt: item.CreatedAt,
+              updatedAt: item.UpdatedAt
+            }));
+            setDocuments(transformedData);
+          }
+        } else {
+          console.error('Failed to fetch requests:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRequests();
   }, []);
 
   const handleClearFilters = () => {
@@ -60,29 +121,79 @@ const Approve = () => {
     setCurrentPage(pageNumber);
   };
 
-  const handleApprove = (docId, approverType) => {
-    console.log(`Approving document ${docId} for role ${approverType}`);
-    setDocuments(prevDocs =>
-      prevDocs.map(doc =>
-        doc.id === docId
-          ? { ...doc, [approverType]: 'ผ่านการอนุมัติ' }
-          : doc
-      )
-    );
+  const handleApprove = async (docId, approverType) => {
+    try {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        alert('Authentication required');
+        return;
+      }
+
+      const response = await fetch(`/api/user/requests/${docId}/decide`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'APPROVE', notes: `Approved by ${approverType}` })
+      });
+
+      if (response.ok) {
+        // Update local state
+        setDocuments(prevDocs =>
+          prevDocs.map(doc =>
+            doc.id === docId
+              ? { ...doc, [approverType]: 'ผ่านการอนุมัติ' }
+              : doc
+          )
+        );
+        alert('อนุมัติเอกสารเรียบร้อยแล้ว');
+      } else {
+        const errorData = await response.json();
+        alert(`อนุมัติไม่สำเร็จ: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Approve error:', error);
+      alert('เกิดข้อผิดพลาดในการอนุมัติ');
+    }
   };
 
-  const handleReject = (docId, approverType) => {
-    console.log(`Rejecting document ${docId} for role ${approverType}`);
-    setDocuments(prevDocs =>
-      prevDocs.map(doc =>
-        doc.id === docId
-          ? { ...doc, [approverType]: 'ไม่อนุมัติ' }
-          : doc
-      )
-    );
+  const handleReject = async (docId, approverType) => {
+    try {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        alert('Authentication required');
+        return;
+      }
+
+      const response = await fetch(`/api/user/requests/${docId}/decide`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'REJECT', notes: `Rejected by ${approverType}` })
+      });
+
+      if (response.ok) {
+        // Update local state
+        setDocuments(prevDocs =>
+          prevDocs.map(doc =>
+            doc.id === docId
+              ? { ...doc, [approverType]: 'ไม่อนุมัติ' }
+              : doc
+          )
+        );
+        alert('ไม่อนุมัติเอกสารเรียบร้อยแล้ว');
+      } else {
+        const errorData = await response.json();
+        alert(`ไม่อนุมัติไม่สำเร็จ: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Reject error:', error);
+      alert('เกิดข้อผิดพลาดในการไม่อนุมัติ');
+    }
   };
-  
-  const currentUserRole = 'ceo';
 
   return (
     <div className="p-8 bg-white min-h-screen rounded-md">
@@ -113,13 +224,13 @@ const Approve = () => {
           </div>
 
           <div className="flex space-x-2">
-            <button onClick={handleClearFilters} className="bg-gray-300 hover:bg-gray-400 text-white-800 px-4 py-2 rounded-md">
+            <button onClick={handleClearFilters} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">
               Clear
             </button>
           </div>
         </div>
       </div>
- 
+
       {!isLoading && filteredDocuments.length === 0 ? (
         <div className="text-center py-12 border-t border-gray-200 mt-4">
           <p className="text-gray-500 text-lg">ไม่พบเอกสารที่ค้นหา</p>
@@ -130,7 +241,7 @@ const Approve = () => {
           <UserListTable
             documents={currentDocuments}
             isLoading={isLoading}
-            role={currentUserRole}
+            role={userRole}
             isApprovalMode={true}
             onApprove={handleApprove}
             onReject={handleReject}
@@ -150,6 +261,6 @@ const Approve = () => {
       )}
     </div>
   );
-}
+};
 
 export default Approve;

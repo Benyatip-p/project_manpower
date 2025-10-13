@@ -26,9 +26,6 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
         if (response.ok) {
           const data = await response.json();
           
-          console.log("Master Data Received from Backend:", data);
-          console.log("Roles Array Status:", data.roles);
-
           setMasterData({
             roles: data.roles || [],
             departments: data.departments || [],
@@ -54,7 +51,8 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
         firstName: editingUser.firstName || '',
         lastName: editingUser.lastName || '',
         email: editingUser.email || '',
-        password: editingUser.password || ''
+        // ล้างรหัสผ่านเมื่อเข้าสู่โหมดแก้ไข
+        password: '' 
       });
     } else {
       setFormData(INITIAL_FORM_STATE);
@@ -73,13 +71,19 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role || !formData.employeeId || !formData.password) {
+    // ตรวจสอบความถูกต้อง: บังคับให้ใส่รหัสผ่านเมื่อเป็นผู้ใช้งานใหม่เท่านั้น
+    if (!editingUser && !formData.password) {
+        alert('กรุณาระบุรหัสผ่านสำหรับผู้ใช้งานใหม่');
+        return;
+    }
+    
+    // ตรวจสอบข้อมูลที่จำเป็นอื่น ๆ
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role || !formData.employeeId) {
         alert('กรุณากรอกข้อมูลที่จำเป็นทั้งหมดให้ครบถ้วน');
         return;
     }
 
     onSave(formData);
-    onClose();
   };
 
   const handleClose = () => {
@@ -195,8 +199,13 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
                 value={formData.password} 
                 onChange={handleChange} 
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" 
-                required 
+                required={!editingUser} 
               />
+              {editingUser && (
+                <p className="text-xs text-gray-500 mt-1">
+                    ปล่อยว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน
+                </p>
+              )}
             </div>
           </div>
 

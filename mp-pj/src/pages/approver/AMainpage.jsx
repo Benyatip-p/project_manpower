@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import UserStatusDropdown from '../../components/UserStatusDropdown';
 import UserListTable from '../../components/UserListTable';
 import Pagination from '../../components/Pagination';
-import { rawDocuments as mockApiData } from '../../data/mockData';
 
 const AMainpage = () => {
   const [documents, setDocuments] = useState([]);
@@ -14,10 +13,64 @@ const AMainpage = () => {
   const [inputStatus, setInputStatus] = useState('');
 
   useEffect(() => {
-    setTimeout(() => {
-      setDocuments(mockApiData);
-      setIsLoading(false);
-    }, 1000);
+    const fetchRequests = async () => {
+      try {
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+          console.error('No JWT token found');
+          setIsLoading(false);
+          return;
+        }
+
+        const response = await fetch('/api/user/requests', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            // Transform backend data to match frontend format
+            const transformedData = data.data.map(item => ({
+              id: item.RequestID,
+              documentNumber: item.DocNumber,
+              department: item.DepartmentName,
+              section: item.SectionName,
+              position: item.PositionName,
+              requesterName: item.RequesterName,
+              employmentType: item.EmploymentType,
+              contractType: item.ContractType,
+              requestReason: item.Reason,
+              requiredPosition: item.RequiredPositionName,
+              ageFrom: item.MinAge,
+              ageTo: item.MaxAge,
+              gender: item.Gender,
+              nationality: item.Nationality,
+              experience: item.Experience,
+              educationLevel: item.EducationLevel,
+              specialQualifications: item.SpecialQualifications,
+              managerStatus: item.OriginStatus,
+              hrStatus: item.HRStatus,
+              ceoStatus: item.OverallStatus,
+              createdAt: item.CreatedAt,
+              updatedAt: item.UpdatedAt
+            }));
+            setDocuments(transformedData);
+          }
+        } else {
+          console.error('Failed to fetch requests:', response.status);
+        }
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRequests();
   }, []);
 
   const handleClearFilters = () => {

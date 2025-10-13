@@ -47,16 +47,16 @@ function UserRowmanage({ user, onEdit, onDelete }) {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
         <div className="flex items-center justify-center space-x-4">
-          <button 
-            onClick={() => onEdit(user.id)} 
+          <button
+            onClick={() => onEdit(user.employeeId)}
             className="text-gray-400 hover:text-blue-600 focus:outline-none transition-colors"
             title="แก้ไขข้อมูล"
             type="button"
           >
             <PencilIcon className="w-5 h-5" />
           </button>
-          <button 
-            onClick={() => onDelete(user.id)} 
+          <button
+            onClick={() => onDelete(user.employeeId)}
             className="text-gray-400 hover:text-red-600 focus:outline-none transition-colors"
             title="ลบผู้ใช้งาน"
             type="button"

@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { rawDocuments as mockApiData } from '../data/mockData';
 
-const FormField = ({ label, value }) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
-    <div className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-gray-700 min-h-[40px] flex items-center">
-      {value || '--'}
+const FormField = ({ label, value }) => {
+  // Logic ที่ถูกต้อง: แสดงค่า 0 หรือค่าจริงอื่นๆ, ถ้าเป็น null/undefined/'' ให้แสดง '--'
+  const displayValue = (value === 0 || value === '0' || value) ? value : '--';
+  
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-500 mb-1">{label}</label>
+      <div className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-gray-700 min-h-[40px] flex items-center">
+        {displayValue}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const DocumentViewPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState('');
+  const [document, setDocument] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [notification, setNotification] = useState({
     show: false,
@@ -29,29 +36,147 @@ const DocumentViewPage = () => {
     }
   }, []);
 
-  const document = mockApiData.find(doc => doc.id.toString() === id);
+  const fetchDocument = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        setError('Authentication required');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!id || id === 'undefined') {
+        setError('Invalid document ID');
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch(`/api/requests/${id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          const doc = data.data;
+
+          // Mapping logic, assuming Go BE now sends "" or 0 instead of null via COALESCE
+          const transformedDoc = {
+            id: doc.RequestID,
+            documentNumber: doc.DocNumber ?? '',
+            documentDate: doc.DocDate ?? '',
+            division: doc.DepartmentName ?? '',
+            department: doc.SectionName ?? '',
+            employmentType: doc.EmploymentType ?? '',
+            contractType: doc.ContractType ?? '',
+            reason: doc.Reason ?? '',
+            requester: doc.RequesterName ?? '',
+            jobCode: doc.RequestingPosID ?? '',
+            positionRequired: doc.RequiredPositionName ?? '',
+            ageFrom: doc.MinAge, // Expect 0 or actual age
+            ageTo: doc.MaxAge,   // Expect 0 or actual age
+            gender: doc.Gender ?? '',
+            nationality: doc.Nationality ?? '',
+            experience: doc.Experience ?? '',
+            educationLevel: doc.EducationLevel ?? '',
+            specialQualifications: doc.SpecialQualifications ?? '',
+            managerStatus: doc.OriginStatus,
+            hrStatus: doc.HRStatus,
+            ceoStatus: doc.OverallStatus
+          };
+          setDocument(transformedDoc);
+        } else {
+          setError('Document not found or data is incomplete');
+        }
+      } else if (response.status === 404) {
+        setError('Document not found');
+      } else if (response.status === 401) {
+        setError('Authentication failed');
+      } else {
+        setError(`Failed to fetch document: ${response.status}`);
+      }
+    } catch (err) {
+      console.error('Error fetching document:', err);
+      setError('Error loading document');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchDocument();
+    }
+  }, [id]);
 
   const showNotification = (message, type = 'success') => {
     setNotification({ show: true, message, type });
     setTimeout(() => {
       setNotification({ show: false, message: '', type: 'success' });
-      navigate(-1);
+      if (type === 'success' && (userRole === 'approve' || userRole === 'approver')) {
+        navigate('/approver'); 
+      }
     }, 1500);
   };
 
-  const handleApprove = () => {
-    showNotification('อนุมัติเอกสารเรียบร้อย', 'success');
+  // Logic สำหรับ Approve/Reject โดยใช้ Decide Handler
+  const handleDecision = async (action) => {
+    try {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        showNotification('Authentication required', 'error');
+        return;
+      }
+
+      // ใช้ Decide Handler สำหรับการดำเนินการทั้งหมด
+      const response = await fetch(`/api/user/requests/${id}/decide`, { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: action.toUpperCase(), notes: `${action} by ${userRole}` })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showNotification(`${action === 'APPROVE' ? 'อนุมัติ' : 'ไม่อนุมัติ'}เอกสารเรียบร้อย`, 'success');
+        fetchDocument(); // Reload to update status for next approver
+      } else {
+        const errorMessage = data.message || data.error || `Failed to ${action} document`;
+        showNotification(errorMessage, 'error');
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing document:`, error);
+      showNotification(`Error ${action}ing document`, 'error');
+    }
   };
 
-  const handleReject = () => {
-    showNotification('ไม่อนุมัติเอกสาร', 'error');
-  };
+  // เงื่อนไขการแสดงปุ่ม: ต้องเป็น Approver และสถานะรวมต้องเป็น IN_PROGRESS
+  const isApprover = userRole === 'approve' || userRole === 'approver';
+  const showApprovalButtons = isApprover && document && document.ceoStatus === 'IN_PROGRESS';
 
-  if (!document) {
+
+  if (isLoading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="text-gray-500 mt-4">กำลังโหลดเอกสาร...</p>
+      </div>
+    );
+  }
+
+  if (error || !document) {
     return (
       <div className="p-8 text-center">
         <h2 className="text-2xl font-semibold text-red-500">ไม่พบเอกสาร</h2>
-        <p className="text-gray-500 mt-2">ไม่พบเอกสารที่คุณกำลังค้นหา</p>
+        <p className="text-gray-500 mt-2">{error || 'ไม่พบเอกสารที่คุณกำลังค้นหา'}</p>
         <button onClick={() => navigate(-1)} className="mt-6 inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
           กลับไปหน้าหลัก
         </button>
@@ -64,7 +189,7 @@ const DocumentViewPage = () => {
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
 
         <h1 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">
-          ใบร้องขอกำลังคน
+          ใบร้องขอกำลังคน ({document.documentNumber})
         </h1>
 
         <div className="space-y-6">
@@ -118,16 +243,16 @@ const DocumentViewPage = () => {
             กลับ
           </button>
 
-          {userRole === 'approve' && (
+          {showApprovalButtons && (
             <div className="flex gap-4">
               <button
-                onClick={handleReject}
+                onClick={() => handleDecision('REJECT')}
                 className="rounded-md border border-transparent px-8 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none"
               >
                 ไม่อนุมัติ
               </button>
               <button
-                onClick={handleApprove}
+                onClick={() => handleDecision('APPROVE')}
                 className="rounded-md border border-transparent px-8 py-2 bg-green-500 text-base font-medium text-white hover:bg-green-600 focus:outline-none"
               >
                 อนุมัติ

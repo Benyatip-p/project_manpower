@@ -12,8 +12,8 @@ const UserRForm = () => {
     contractTypeId: '',
     requestReasonId: '',
     requesterName: '',
-    positionId: '',
-    requiredPositionId: '',
+    positionId: '', // รหัสตำแหน่งงาน (string)
+    requiredPositionId: '', // ID ตำแหน่งที่ต้องการ
     ageFrom: '',
     ageTo: '',
     genderId: '',
@@ -42,12 +42,6 @@ const UserRForm = () => {
     type: 'success'
   });
 
-  const getNameFromId = (id, listName) => {
-    const list = masterData[listName] || [];
-    const item = list.find(item => item.id === parseInt(id));
-    return item ? item.name : '';
-  };
-
   useEffect(() => {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, '0');
@@ -61,7 +55,20 @@ const UserRForm = () => {
         const response = await fetch('/api/masterdata');
         if (response.ok) {
           const data = await response.json();
-          setMasterData(data);
+          const formatData = (list) => list.map(item => ({...item, id: parseInt(item.id) || item.id}));
+
+          setMasterData({
+              departments: formatData(data.departments || []),
+              positions: formatData(data.positions || []),
+              sections: formatData(data.sections || []),
+              employmentTypes: formatData(data.employmentTypes || []),
+              contractTypes: formatData(data.contractTypes || []),
+              requestReasons: formatData(data.requestReasons || []),
+              genders: formatData(data.genders || []),
+              nationalities: formatData(data.nationalities || []),
+              experiences: formatData(data.experiences || []),
+              educationLevels: formatData(data.educationLevels || [])
+          });
         } else {
           console.error("Failed to fetch master data, status:", response.status);
           showNotification('ไม่สามารถดึงข้อมูลหลักได้', 'error');
@@ -76,7 +83,12 @@ const UserRForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    // แปลงค่าเป็น int สำหรับ ID fields แต่ยกเว้น positionId ที่เป็น string
+    if ((name.endsWith('Id') || name.endsWith('ID')) && name !== 'positionId') {
+        setFormData(prev => ({ ...prev, [name]: parseInt(value) || '' }));
+    } else {
+        setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleDateChange = (e) => {
@@ -136,32 +148,41 @@ const UserRForm = () => {
       }
     }
 
+    // เตรียม Payload สำหรับ Go Backend โดยใช้ ID
     const dataToSubmit = {
-      documentDate: formData.documentDate,
-      department: getNameFromId(formData.departmentId, 'departments'),
-      section: getNameFromId(formData.sectionId, 'sections'),
-      employmentType: getNameFromId(formData.employmentTypeId, 'employmentTypes'),
-      contractType: getNameFromId(formData.contractTypeId, 'contractTypes'),
-      requestReason: getNameFromId(formData.requestReasonId, 'requestReasons'),
-      requesterName: formData.requesterName,
-      positionId: formData.positionId,
-      positionRequire: getNameFromId(formData.requiredPositionId, 'positions'),
-      ageFrom: formData.ageFrom,
-      ageTo: formData.ageTo,
-      gender: getNameFromId(formData.genderId, 'genders'),
-      nationality: getNameFromId(formData.nationalityId, 'nationalities'),
-      experience: getNameFromId(formData.experienceId, 'experiences'),
-      educationLevel: getNameFromId(formData.educationLevelId, 'educationLevels'),
-      specialQualifications: formData.specialQualifications,
+      // required_position_name ต้องส่งเป็นชื่อตำแหน่ง
+      required_position_name: masterData.positions.find(p => p.id === formData.requiredPositionId)?.name || '',
+      num_required: 1, 
+      employment_type_id: formData.employmentTypeId,
+      contract_type_id: formData.contractTypeId,
+      reason_id: formData.requestReasonId,
+      min_age: formData.ageFrom ? parseInt(formData.ageFrom) : null,
+      max_age: formData.ageTo ? parseInt(formData.ageTo) : null,
+      gender_id: formData.genderId || null,
+      nationality_id: formData.nationalityId || null,
+      experience_id: formData.experienceId || null,
+      education_level_id: formData.educationLevelId || null,
+      special_qualifications: formData.specialQualifications,
+      target_hire_date: null,
     };
 
 
     console.log('กำลังส่งข้อมูล:', dataToSubmit);
 
     try {
-      const response = await fetch('/api/request', {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        showNotification('กรุณาเข้าสู่ระบบก่อน', 'error');
+        return;
+      }
+
+      // Endpoint สำหรับ Submit request
+      const response = await fetch('/api/user/requests/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(dataToSubmit)
       });
 
@@ -169,9 +190,9 @@ const UserRForm = () => {
 
       console.log('Response จาก Server:', data);
 
-      if (response.ok && data.success) {
-        console.log('บันทึกข้อมูลสำเร็จ ID:', data.id);
-        showNotification('บันทึกข้อมูลเสร็จสิ้น', 'success');
+      if (response.ok) { 
+        console.log('บันทึกข้อมูลสำเร็จ DocNo:', data.doc_number);
+        showNotification(`บันทึกข้อมูลเสร็จสิ้น: ${data.doc_number}`, 'success');
         setTimeout(() => handleClear(), 1500);
       } else {
         const errorMessage = data.message || data.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';

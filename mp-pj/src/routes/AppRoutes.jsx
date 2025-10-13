@@ -47,9 +47,10 @@ const router = createBrowserRouter([
           path: '/approver',
           element: <Approverlayout />,
           children: [
-               { index: true, element: <ADashboard /> },
+               { index: true, element: <AMainpage /> },
+               { path: "dashboard", element: <ADashboard /> },
                { path: "approve", element: <Approve /> },
-               { path: "view/:id", element: <DocumentViewPage /> }, 
+               { path: "view/:id", element: <DocumentViewPage /> },
                { path: "*", element: <Notfound /> },
           ]
 

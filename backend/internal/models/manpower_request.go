@@ -11,7 +11,7 @@ type ManpowerRequest struct {
 	DepartmentName     string     `json:"department_name" db:"dept_name"`
 
 	SectionID          *int       `json:"section_id" db:"requesting_section_id"`
-	SectionName        *string    `json:"section_name" db:"section_name"`
+	SectionName        string     `json:"section_name" db:"section_name"`
 
 	PositionID         int        `json:"position_id" db:"requesting_pos_id"`
 	PositionName       string     `json:"position_name" db:"pos_name"`
@@ -24,8 +24,8 @@ type ManpowerRequest struct {
 	Reason             string     `json:"reason" db:"reason_name"`
 
 	RequiredPositionName string   `json:"required_position_name" db:"required_position_name"`
-	MinAge              *int      `json:"min_age" db:"min_age"`
-	MaxAge              *int      `json:"max_age" db:"max_age"`
+	MinAge              int       `json:"min_age" db:"min_age"`
+	MaxAge              int       `json:"max_age" db:"max_age"`
 	Gender              string    `json:"gender" db:"gender_name"`
 	Nationality         string    `json:"nationality" db:"nat_name"`
 	Experience          string    `json:"experience" db:"exp_name"`

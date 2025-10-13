@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import UserRowmanage from '../../components/UserRowmanage';
-// --- 1. เปลี่ยนไป import Pagination ตัวหลัก ---
 import Pagination from '../../components/Pagination'; 
 import AddUserModal from '../../components/AddUserModal';
 import ConfirmationModal from '../../components/ConfirmationModal'; 
@@ -33,12 +32,27 @@ function UserManage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/employees'); 
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        console.error('No JWT token found');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/admin/employees', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.map((user, index) => ({ 
-            ...user, 
-            id: index + 1, 
+        setUsers(data.map((user) => ({
+            ...user,
+            // ใช้ employeeId เป็น key สำหรับการค้นหา/จัดการใน frontend
+            id: user.employeeId,
         })));
       } else {
         console.error("Failed to fetch user list, status:", response.status);
@@ -76,7 +90,6 @@ function UserManage() {
     return filteredUsers.slice(startIndex, endIndex);
   }, [filteredUsers, currentPage]);
 
-  // --- 2. เปลี่ยนชื่อตัวแปรให้สื่อความหมาย (ไม่ต้องทำก็ได้ แต่ทำให้อ่านง่ายขึ้น) ---
   const itemsOnCurrentPage = paginatedUsers.length;
   const totalItems = filteredUsers.length;
 
@@ -90,50 +103,85 @@ function UserManage() {
     setCurrentPage(1);
   };
 
-  const handleEditUser = (userId) => {
-    const user = users.find(u => u.id === userId);
+  // เปลี่ยนไปใช้ employeeId
+  const handleEditUser = (employeeId) => {
+    const user = users.find(u => u.id === employeeId);
     setEditingUser(user);
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (userId) => {
-    const user = users.find(u => u.id === userId);
+  // เปลี่ยนไปใช้ employeeId
+  const handleDeleteUser = (employeeId) => {
+    const user = users.find(u => u.id === employeeId);
     setUserToDelete(user); 
   };
 
-  const confirmDeleteHandler = () => {
+  // อัปเดต: ใช้ API ในการลบ
+  const confirmDeleteHandler = async () => {
     if (!userToDelete) return; 
 
-    setUsers(prevUsers => prevUsers.filter(u => u.id !== userToDelete.id));
-    showNotification(`ลบผู้ใช้ ${userToDelete.firstName} สำเร็จ`, 'success');
-    
-    if (paginatedUsers.length === 1 && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+    const url = `/api/admin/employees/${userToDelete.employeeId}`; // สมมติว่าใช้ employeeId ในการอ้างอิง
 
-    setUserToDelete(null); 
+    try {
+        const token = localStorage.getItem('jwt_token');
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+        });
+
+        if (response.ok || response.status === 204) { 
+            showNotification(`ลบผู้ใช้ ${userToDelete.firstName} สำเร็จ`, 'success');
+            // Re-fetch ข้อมูลใหม่ทั้งหมดหลังจากลบสำเร็จ
+            fetchUsers(); 
+        } else {
+            const result = await response.json();
+            const errorMessage = result.error || result.message || 'เกิดข้อผิดพลาดในการลบข้อมูล';
+            showNotification(`ลบผู้ใช้ไม่สำเร็จ: ${errorMessage}`, 'error');
+            console.error("API Error:", result);
+        }
+    } catch (error) {
+        showNotification('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์', 'error');
+        console.error('Fetch Error:', error);
+    } finally {
+        setUserToDelete(null); 
+    }
   };
 
+  // อัปเดต: เพิ่มส่วนของการแก้ไขข้อมูล (PUT/PATCH)
   const handleSaveUser = async (userData) => {
     const isEditing = !!editingUser;
-    const url = '/api/admin/employees';
     
+    // เตรียมข้อมูลที่ต้องการส่ง
     const dataToSubmit = {
         employeeId: userData.employeeId,
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
-        password: userData.password,
         role: userData.role, 
         department: userData.department,
         position: userData.position,
     };
     
+    // ส่งรหัสผ่านก็ต่อเมื่อมีการกรอก (กรณีเพิ่มผู้ใช้ใหม่) หรือมีการเปลี่ยนแปลง (กรณีแก้ไข)
+    if (userData.password) {
+        dataToSubmit.password = userData.password;
+    }
+
     if (!isEditing) {
+        // --- Logic สำหรับเพิ่มผู้ใช้ใหม่ (POST) ---
+        const url = '/api/admin/employees';
+        
         try {
+            const token = localStorage.getItem('jwt_token');
             const response = await fetch(url, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(dataToSubmit),
             });
 
@@ -154,12 +202,40 @@ function UserManage() {
             return;
         }
     } else {
-        setUsers(prevUsers => 
-            prevUsers.map(u => u.id === editingUser.id ? { ...userData, id: editingUser.id } : u)
-        );
-        showNotification('แก้ไขข้อมูลผู้ใช้งานสำเร็จ!', 'success');
+        // --- Logic สำหรับแก้ไขผู้ใช้ (PUT/PATCH) ---
+        const url = `/api/admin/employees/${editingUser.employeeId}`; 
+
+        try {
+            const token = localStorage.getItem('jwt_token');
+            const response = await fetch(url, {
+                method: 'PUT', // ใช้ PUT หรือ PATCH
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(dataToSubmit),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showNotification('แก้ไขข้อมูลผู้ใช้งานสำเร็จ!', 'success');
+                fetchUsers(); // Re-fetch เพื่อให้ข้อมูลล่าสุดแสดงผล
+            } else {
+                const errorMessage = result.error || result.message || 'เกิดข้อผิดพลาด';
+                showNotification(`แก้ไขผู้ใช้ไม่สำเร็จ: ${errorMessage}`, 'error');
+                console.error("API Error:", result);
+                return;
+            }
+
+        } catch (error) {
+            showNotification('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์', 'error');
+            console.error('Fetch Error:', error);
+            return;
+        }
     }
 
+    // ปิด Modal เมื่อดำเนินการสำเร็จ
     handleCloseModal();
   };
 
@@ -234,10 +310,10 @@ function UserManage() {
                         {paginatedUsers.length > 0 ? (
                             paginatedUsers.map(user => (
                             <UserRowmanage
-                                key={user.id}
+                                key={user.id} // key คือ employeeId
                                 user={user}
-                                onEdit={handleEditUser}
-                                onDelete={handleDeleteUser}
+                                onEdit={handleEditUser} // ส่ง employeeId ไปยัง UserRowmanage
+                                onDelete={handleDeleteUser} // ส่ง employeeId ไปยัง UserRowmanage
                             />
                             ))
                         ) : (
@@ -252,7 +328,6 @@ function UserManage() {
                 </div>
                 </div>
 
-                {/* --- 3. แก้ไขส่วนของ Pagination ทั้งหมด --- */}
                 <div className="mt-4">
                   <Pagination
                     currentPage={currentPage}
@@ -278,7 +353,7 @@ function UserManage() {
         onClose={() => setUserToDelete(null)} 
         onConfirm={confirmDeleteHandler} 
         title="ยืนยันการลบผู้ใช้งาน"
-        message={`คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้: ${userToDelete?.firstName} ${userToDelete?.lastName}?`}
+        message={`คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้: ${userToDelete?.firstName} ${userToDelete?.lastName} (${userToDelete?.employeeId})?`}
       />
 
       {notification.show && (
