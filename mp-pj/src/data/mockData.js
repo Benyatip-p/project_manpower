@@ -357,7 +357,7 @@ export const generateDashboardData = () => {
     },
     pieData: [
       { name: 'คำร้องที่อนุมัติแล้ว', value: approvedRequests },
-      { name: 'คำร้องรออนุมัติ', value: totalRequests - approvedRequests },
+      { name: 'คำร้องรออนุมัติ', value: pendingRequests },
     ],
     // ข้อมูลนี้อาจจะมาจากตารางอื่นใน DB จริง แต่เราจะจำลองไว้ที่นี่
      lineData: [ 

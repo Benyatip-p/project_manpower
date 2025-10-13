@@ -15,18 +15,14 @@ const DocumentViewPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [userRole, setUserRole] = useState('');
-
-  const [notification, setNotification] = useState({
-    show: false,
-    message: '',
-    type: 'success',
-  });
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [rejectError, setRejectError] = useState(false);
 
   useEffect(() => {
     const role = localStorage.getItem('user_role');
-    if (role) {
-      setUserRole(role.toLowerCase());
-    }
+    if (role) setUserRole(role.toLowerCase());
   }, []);
 
   const document = mockApiData.find(doc => doc.id.toString() === id);
@@ -43,8 +39,22 @@ const DocumentViewPage = () => {
     showNotification('อนุมัติเอกสารเรียบร้อย', 'success');
   };
 
-  const handleReject = () => {
+  const handleRejectClick = () => {
+    setRejectReason('');
+    setRejectError(false);
+    setShowRejectModal(true);
+  };
+
+  const handleConfirmReject = () => {
+    if (!rejectReason.trim()) {
+      setRejectError(true);
+      return;
+    }
+    setShowRejectModal(false);
     showNotification('ไม่อนุมัติเอกสาร', 'error');
+    setRejectReason('');
+    setRejectError(false);
+    // TODO: อัปเดตสถานะจริงผ่าน context/API
   };
 
   if (!document) {
@@ -59,10 +69,21 @@ const DocumentViewPage = () => {
     );
   }
 
+  const isAllApproved =
+    document.managerStatus === 'ผ่านการอนุมัติ' &&
+    document.hrStatus === 'ผ่านการอนุมัติ' &&
+    document.ceoStatus === 'ผ่านการอนุมัติ';
+
+  const hasAnyRejected =
+    document.managerStatus === 'ไม่อนุมัติ' ||
+    document.hrStatus === 'ไม่อนุมัติ' ||
+    document.ceoStatus === 'ไม่อนุมัติ';
+
+  const canShowApproveButtons = !isAllApproved && !hasAnyRejected;
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
-
         <h1 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">
           ใบร้องขอกำลังคน
         </h1>
@@ -85,6 +106,7 @@ const DocumentViewPage = () => {
             <FormField label="ชื่อผู้ร้องขอ" value={document.requester} />
           </div>
         </div>
+
         <div className="mt-10 pt-6 border-t">
           <h2 className="text-2xl font-bold text-gray-700 mb-6">คุณสมบัติ</h2>
           <div className="space-y-6">
@@ -118,10 +140,10 @@ const DocumentViewPage = () => {
             กลับ
           </button>
 
-          {userRole === 'approve' && (
+          {userRole === 'approve' && canShowApproveButtons && (
             <div className="flex gap-4">
               <button
-                onClick={handleReject}
+                onClick={handleRejectClick}
                 className="rounded-md border border-transparent px-8 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none"
               >
                 ไม่อนุมัติ
@@ -135,18 +157,50 @@ const DocumentViewPage = () => {
             </div>
           )}
         </div>
-
       </div>
+
+      {/* Modal สำหรับกรอกเหตุผลไม่อนุมัติ */}
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold mb-4">กรอกเหตุผลไม่อนุมัติ</h3>
+            <textarea
+              className={`w-full border rounded-md p-2 h-24 mb-2 ${
+                rejectError ? 'border-red-500' : 'border-gray-300'
+              }`}
+              value={rejectReason}
+              onChange={(e) => { setRejectReason(e.target.value); setRejectError(false); }}
+              placeholder="กรุณากรอกเหตุผล..."
+            />
+            {rejectError && <p className="text-red-500 text-sm mb-2">กรุณากรอกเหตุผล</p>}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => { setShowRejectModal(false); setRejectReason(''); setRejectError(false); }}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleConfirmReject}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                ยืนยัน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {notification.show && (
         <div className="fixed top-13 right-5 z-50 animate-slide-in">
-          <div className={`flex items-center gap-3 px-5 py-3 rounded-full shadow-lg backdrop-blur-sm ${notification.type === 'success'
-              ? 'bg-green-500/90 text-white'
-              : 'bg-red-500/90 text-white'
-            }`}>
-            <span className="text-xl">
-              {notification.type === 'success' ? '✓' : '✕'}
-            </span>
+          <div
+            className={`flex items-center gap-3 px-5 py-3 rounded-full shadow-lg backdrop-blur-sm ${
+              notification.type === 'success'
+                ? 'bg-green-500/90 text-white'
+                : 'bg-red-500/90 text-white'
+            }`}
+          >
+            <span className="text-xl">{notification.type === 'success' ? '✓' : '✕'}</span>
             <span className="text-lg">{notification.message}</span>
           </div>
         </div>

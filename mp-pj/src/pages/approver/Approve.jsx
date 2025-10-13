@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import UserStatusDropdown from '../../components/UserStatusDropdown';
 import UserListTable from '../../components/UserListTable';
 import Pagination from '../../components/Pagination';
@@ -29,12 +29,14 @@ const Approve = () => {
   const filteredDocuments = useMemo(() => {
     const trimmedSearch = inputDocNumber.trim().toLowerCase();
     return documents.filter(doc => {
-      const statusMatch = inputStatus === '' ||
+      const statusMatch =
+        inputStatus === '' ||
         doc.managerStatus === inputStatus ||
         doc.hrStatus === inputStatus ||
         doc.ceoStatus === inputStatus;
 
-      const searchMatch = trimmedSearch === '' ||
+      const searchMatch =
+        trimmedSearch === '' ||
         doc.documentNumber.toLowerCase().includes(trimmedSearch);
 
       return statusMatch && searchMatch;
@@ -60,28 +62,43 @@ const Approve = () => {
     setCurrentPage(pageNumber);
   };
 
-  const handleApprove = (docId, approverType) => {
-    console.log(`Approving document ${docId} for role ${approverType}`);
+  // ✅ แก้ Flow การอนุมัติให้ไล่ตามลำดับ Manager → HR → CEO
+  const handleApprove = (docId) => {
+    setDocuments(prevDocs =>
+      prevDocs.map(doc => {
+        if (doc.id !== docId) return doc;
+
+        if (doc.managerStatus === 'รออนุมัติ') {
+          return { ...doc, managerStatus: 'ผ่านการอนุมัติ' };
+        }
+
+        if (doc.managerStatus === 'ผ่านการอนุมัติ' && doc.hrStatus === 'รออนุมัติ') {
+          return { ...doc, hrStatus: 'ผ่านการอนุมัติ' };
+        }
+
+        if (
+          doc.managerStatus === 'ผ่านการอนุมัติ' &&
+          doc.hrStatus === 'ผ่านการอนุมัติ' &&
+          doc.ceoStatus === 'รออนุมัติ'
+        ) {
+          return { ...doc, ceoStatus: 'ผ่านการอนุมัติ' };
+        }
+
+        return doc; // ถ้าไม่มีขั้นไหนเข้าเงื่อนไข ก็ไม่เปลี่ยน
+      })
+    );
+  };
+
+  const handleReject = (docId) => {
     setDocuments(prevDocs =>
       prevDocs.map(doc =>
         doc.id === docId
-          ? { ...doc, [approverType]: 'ผ่านการอนุมัติ' }
+          ? { ...doc, ceoStatus: 'ไม่อนุมัติ' } // หรืออาจเปลี่ยนเป็น field ตาม role ที่ล็อกอิน
           : doc
       )
     );
   };
 
-  const handleReject = (docId, approverType) => {
-    console.log(`Rejecting document ${docId} for role ${approverType}`);
-    setDocuments(prevDocs =>
-      prevDocs.map(doc =>
-        doc.id === docId
-          ? { ...doc, [approverType]: 'ไม่อนุมัติ' }
-          : doc
-      )
-    );
-  };
-  
   const currentUserRole = 'ceo';
 
   return (
@@ -119,7 +136,7 @@ const Approve = () => {
           </div>
         </div>
       </div>
- 
+
       {!isLoading && filteredDocuments.length === 0 ? (
         <div className="text-center py-12 border-t border-gray-200 mt-4">
           <p className="text-gray-500 text-lg">ไม่พบเอกสารที่ค้นหา</p>
@@ -150,6 +167,6 @@ const Approve = () => {
       )}
     </div>
   );
-}
+};
 
 export default Approve;
