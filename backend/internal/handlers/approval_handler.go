@@ -53,6 +53,7 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 		mr.special_qualifications,
 		mr.origin_status,
 		mr.hr_status,
+		mr.management_status,
 		mr.overall_status,
 		mr.target_hire_date,
 		mr.created_at,
@@ -88,6 +89,13 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 		return
 	}
 
+	// Get Management department ID
+	var mgmtDeptID int
+	if err := database.DB.QueryRow(`SELECT dept_id FROM departments WHERE dept_name=$1`, deptMgmtName).Scan(&mgmtDeptID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get Management department"})
+		return
+	}
+
 	// Build WHERE clause based on role and position
 	var whereClause string
 
@@ -103,6 +111,9 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 		default:
 			whereClause = "WHERE 1=0" // No permissions
 		}
+	} else if deptID == mgmtDeptID {
+		// Management Department
+		whereClause = "WHERE mr.management_status = 'WAITING_MANAGEMENT'"
 	} else {
 		// Origin Department
 		switch posName {
@@ -160,6 +171,7 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 			&r.SpecialQualifications,
 			&r.OriginStatus,
 			&r.HRStatus,
+			&r.ManagementStatus,
 			&r.OverallStatus,
 			&r.TargetHireDate,
 			&r.CreatedAt,
@@ -200,7 +212,8 @@ const (
 	posDirector  = "ผู้อำนวยการฝ่าย"
 	posRecruiter = "เจ้าหน้าที่ HR"
 
-	deptHRName = "ฝ่ายทรัพยากรบุคคล"
+	deptHRName    = "ฝ่ายทรัพยากรบุคคล"
+	deptMgmtName  = "ฝ่ายบริหาร"
 )
 
 // resolveActorRole returns which lane the actor belongs to for THIS request,
@@ -227,6 +240,14 @@ func resolveActorRoleForRequest(
 		return "", err
 	}
 
+	// get whether actor in Management department
+	var mgmtDeptID int
+	if err := database.DB.QueryRow(
+		`SELECT dept_id FROM departments WHERE dept_name=$1`, deptMgmtName,
+	).Scan(&mgmtDeptID); err != nil {
+		return "", err
+	}
+
 	// HR lane
 	if actorDeptID == hrDeptID {
 		switch posName {
@@ -238,6 +259,11 @@ func resolveActorRoleForRequest(
 			return "HRDIR", nil
 		}
 		return "", nil
+	}
+
+	// Management lane
+	if actorDeptID == mgmtDeptID {
+		return "MGMT", nil
 	}
 
 	// Origin lane (same department as request)
@@ -318,15 +344,16 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		reqSectionID        sql.NullInt64
 		originStatus        string
 		hrStatus            string
+		managementStatus    string
 		overallStatus       string
 	)
 	err = tx.QueryRow(`
 		SELECT doc_number, requesting_dept_id, requesting_section_id,
-		       origin_status, hr_status, overall_status
+		       origin_status, hr_status, management_status, overall_status
 		FROM manpower_requests
 		WHERE request_id=$1
 		FOR UPDATE
-	`, reqID).Scan(&docNo, &reqDeptID, &reqSectionID, &originStatus, &hrStatus, &overallStatus)
+	`, reqID).Scan(&docNo, &reqDeptID, &reqSectionID, &originStatus, &hrStatus, &managementStatus, &overallStatus)
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{"error": "request not found"})
 		return
@@ -350,6 +377,7 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 	// compute next statuses
 	newOrigin := originStatus
 	newHR := hrStatus
+	newMgmt := managementStatus
 	newOverall := overallStatus
 	var step int // approval_history.step
 	switch actorLane {
@@ -365,9 +393,10 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 			if newHR == "NONE" || newHR == "HR_INTAKE" {
 				newHR = "WAITING_RECRUITER"
 			}
+			newOverall = "IN_PROCESS"
 		case "REJECT":
 			newOrigin = "MGR_REJECTED"
-			newOverall = "REJECTED"
+			newOverall = "DISAPPROVED"
 		case "RETURN":
 			newOrigin = "RETURNED"
 		default:
@@ -388,9 +417,10 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 			if newHR == "NONE" {
 				newHR = "WAITING_RECRUITER"
 			}
+			newOverall = "IN_PROCESS"
 		case "REJECT":
 			newOrigin = "DIR_REJECTED"
-			newOverall = "REJECTED"
+			newOverall = "DISAPPROVED"
 		case "RETURN":
 			newOrigin = "RETURNED"
 		default:
@@ -410,7 +440,7 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 			newHR = "WAITING_HR_MANAGER"
 		case "REJECT":
 			newHR = "RECRUITER_REJECTED"
-			newOverall = "REJECTED"
+			newOverall = "DISAPPROVED"
 		case "RETURN":
 			newHR = "RETURNED"
 		default:
@@ -430,7 +460,7 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 			newHR = "WAITING_HR_DIRECTOR"
 		case "REJECT":
 			newHR = "HR_MANAGER_REJECTED"
-			newOverall = "REJECTED"
+			newOverall = "DISAPPROVED"
 		case "RETURN":
 			newHR = "RETURNED"
 		default:
@@ -447,12 +477,33 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		switch action {
 		case "APPROVE":
 			newHR = "HR_DIRECTOR_APPROVED"
-			newOverall = "APPROVED"
+			newMgmt = "WAITING_MANAGEMENT"
+			newOverall = "IN_PROCESS"
 		case "REJECT":
 			newHR = "HR_DIRECTOR_REJECTED"
-			newOverall = "REJECTED"
+			newOverall = "DISAPPROVED"
 		case "RETURN":
 			newHR = "RETURNED"
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid action"})
+			return
+		}
+
+	case "MGMT":
+		if managementStatus != "WAITING_MANAGEMENT" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "not waiting management"})
+			return
+		}
+		step = 6
+		switch action {
+		case "APPROVE":
+			newMgmt = "MANAGEMENT_APPROVED"
+			newOverall = "APPROVED"
+		case "REJECT":
+			newMgmt = "MANAGEMENT_REJECTED"
+			newOverall = "DISAPPROVED"
+		case "RETURN":
+			newMgmt = "RETURNED"
 		default:
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid action"})
 			return
@@ -465,9 +516,9 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 	// update request
 	if _, err := tx.Exec(`
 		UPDATE manpower_requests
-		SET origin_status=$1, hr_status=$2, overall_status=$3, updated_at=NOW()
-		WHERE request_id=$4
-	`, newOrigin, newHR, newOverall, reqID); err != nil {
+		SET origin_status=$1, hr_status=$2, management_status=$3, overall_status=$4, updated_at=NOW()
+		WHERE request_id=$5
+	`, newOrigin, newHR, newMgmt, newOverall, reqID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "update failed"})
 		return
 	}
@@ -487,11 +538,12 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":         "decision stored",
-		"request_id":      reqID,
-		"doc_number":      docNo,
-		"origin_status":   newOrigin,
-		"hr_status":       newHR,
-		"overall_status":  newOverall,
+		"message":            "decision stored",
+		"request_id":         reqID,
+		"doc_number":         docNo,
+		"origin_status":      newOrigin,
+		"hr_status":          newHR,
+		"management_status":  newMgmt,
+		"overall_status":     newOverall,
 	})
 }

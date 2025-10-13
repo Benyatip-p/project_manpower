@@ -26,7 +26,6 @@ type CreateSubmitResponse struct {
     OverallStatus string `json:"overall_status" example:"IN_PROGRESS"`
 }
 
-// CreateManpowerRequestInput (ใช้สำหรับรับข้อมูลจาก UserRForm.jsx)
 type CreateManpowerRequestInput struct {
     RequiredPositionName string  `json:"required_position_name" binding:"required"`
     NumRequired           int     `json:"num_required" binding:"required"`
@@ -40,45 +39,46 @@ type CreateManpowerRequestInput struct {
     ExperienceID          *int    `json:"experience_id"`
     EducationLevelID      *int    `json:"education_level_id"`
     SpecialQualifications string  `json:"special_qualifications"`
-    TargetHireDate        *string `json:"target_hire_date"` // รูปแบบ YYYY-MM-DD
+    TargetHireDate        *string `json:"target_hire_date"` 
 }
 
-// GetManpowerRequestsHandler (Used for list views: user/approver)
 func GetManpowerRequestsHandler(c *gin.Context) {
 	role := c.GetString(mw.CtxRoleName)
 	deptID := c.GetInt(mw.CtxDeptID)
 	secID  := c.GetInt(mw.CtxSectionID)
+	empID  := c.GetString(mw.CtxEmployeeID)
 
 	baseSelect := `
 SELECT
-    mr.request_id,
-    mr.doc_number,
-    mr.doc_date,
-    mr.requesting_dept_id,
-    d.dept_name,
-    mr.requesting_section_id,
-    s.section_name,
-    mr.requesting_pos_id,
-    p.pos_name,
-    mr.employee_id,
-    (e.first_name || ' ' || e.last_name) AS requester_name,
-    et.et_name AS employment_type_name,
-    ct.ct_name AS contract_type_name,
-    rr.rr_name AS reason_name,
-    mr.required_position_name,
-    mr.min_age,
-    mr.max_age,
-    COALESCE(g.gender_name,'') AS gender_name,
-    COALESCE(n.nat_name,'')    AS nat_name,
-    COALESCE(exp.exp_name,'')  AS exp_name,
-    COALESCE(edu.edu_name,'')  AS edu_name,
-    mr.special_qualifications,
-    mr.origin_status,
-    mr.hr_status,
-    mr.overall_status,
-    mr.target_hire_date,
-    mr.created_at,
-    mr.updated_at
+	   mr.request_id,
+	   mr.doc_number,
+	   mr.doc_date,
+	   mr.requesting_dept_id,
+	   d.dept_name,
+	   mr.requesting_section_id,
+	   s.section_name,
+	   mr.requesting_pos_id,
+	   p.pos_name,
+	   mr.employee_id,
+	   (e.first_name || ' ' || e.last_name) AS requester_name,
+	   et.et_name AS employment_type_name,
+	   ct.ct_name AS contract_type_name,
+	   rr.rr_name AS reason_name,
+	   mr.required_position_name,
+	   mr.min_age,
+	   mr.max_age,
+	   COALESCE(g.gender_name,'') AS gender_name,
+	   COALESCE(n.nat_name,'')    AS nat_name,
+	   COALESCE(exp.exp_name,'')  AS exp_name,
+	   COALESCE(edu.edu_name,'')  AS edu_name,
+	   mr.special_qualifications,
+	   mr.origin_status,
+	   mr.hr_status,
+	   mr.management_status,
+	   mr.overall_status,
+	   mr.target_hire_date,
+	   mr.created_at,
+	   mr.updated_at
 FROM manpower_requests mr
 LEFT JOIN departments d   ON mr.requesting_dept_id    = d.dept_id
 LEFT JOIN sections   s    ON mr.requesting_section_id = s.section_id
@@ -98,17 +98,19 @@ LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 		args  []interface{}
 	)
 
-	if role == "Admin" || role == "Approve" {
-		// เห็นทั้งหมด
+	if role == "Admin" {
 		query = baseSelect + " ORDER BY mr.created_at DESC"
+	} else if role == "Approve" {
+		query = baseSelect + " WHERE mr.requesting_dept_id = $1 AND mr.overall_status IN ('IN_PROCESS', 'IN_PROGRESS') ORDER BY mr.created_at DESC"
+		args = append(args, deptID)
 	} else {
-		// ผู้ใช้ทั่วไป: ถ้ามี section_id ให้กรอง section ก่อน ไม่งั้นกรองตาม department
+		// ผู้ใช้ทั่วไป: เห็นเฉพาะคำขอที่ตัวเองส่ง หรืออยู่ในแผนกเดียวกัน
 		if secID > 0 {
-			query = baseSelect + " WHERE mr.requesting_section_id = $1 ORDER BY mr.created_at DESC"
-			args = append(args, secID)
+			query = baseSelect + " WHERE (mr.employee_id = $1 OR mr.requesting_section_id = $2) ORDER BY mr.created_at DESC"
+			args = append(args, empID, secID)
 		} else {
-			query = baseSelect + " WHERE mr.requesting_dept_id = $1 ORDER BY mr.created_at DESC"
-			args = append(args, deptID)
+			query = baseSelect + " WHERE (mr.employee_id = $1 OR mr.requesting_dept_id = $2) ORDER BY mr.created_at DESC"
+			args = append(args, empID, deptID)
 		}
 	}
 
@@ -149,6 +151,7 @@ LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 			&r.SpecialQualifications,
 			&r.OriginStatus,
 			&r.HRStatus,
+			&r.ManagementStatus,
 			&r.OverallStatus,
 			&r.TargetHireDate,
 			&r.CreatedAt,
@@ -162,8 +165,7 @@ LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 			continue
 		}
 		//display
-		// สมมติว่า mapStatusForRole ถูก Implement ไว้ในไฟล์อื่น (เช่น utils.go)
-		// r.DisplayStatus = mapStatusForRole(role, r.OriginStatus, r.HRStatus, r.OverallStatus)
+		r.DisplayStatus = mapStatusForRole(role, r.OriginStatus, r.HRStatus, r.ManagementStatus, r.OverallStatus)
 		requests = append(requests, r)
 	}
 
@@ -323,7 +325,7 @@ func GetManpowerRequestByIDHandler(c *gin.Context) {
 			mr.requesting_dept_id,
 			d.dept_name,
 			mr.requesting_section_id,
-			COALESCE(s.section_name, '') AS section_name, 
+			COALESCE(s.section_name, '') AS section_name,
 			mr.requesting_pos_id,
 			p.pos_name,
 			mr.employee_id,
@@ -332,15 +334,16 @@ func GetManpowerRequestByIDHandler(c *gin.Context) {
 			ct.ct_name AS contract_type_name,
 			rr.rr_name AS reason_name,
 			mr.required_position_name,
-			COALESCE(mr.min_age, 0) AS min_age, 
-			COALESCE(mr.max_age, 0) AS max_age, 
+			COALESCE(mr.min_age, 0) AS min_age,
+			COALESCE(mr.max_age, 0) AS max_age,
 			COALESCE(g.gender_name,'') AS gender_name,
 			COALESCE(n.nat_name,'')    AS nat_name,
 			COALESCE(exp.exp_name,'')  AS exp_name,
 			COALESCE(edu.edu_name,'')  AS edu_name,
-			COALESCE(mr.special_qualifications, '') AS special_qualifications, 
+			COALESCE(mr.special_qualifications, '') AS special_qualifications,
 			mr.origin_status,
 			mr.hr_status,
+			mr.management_status,
 			mr.overall_status,
 			mr.target_hire_date,
 			mr.created_at,
@@ -362,35 +365,50 @@ func GetManpowerRequestByIDHandler(c *gin.Context) {
 
 	var r models.ManpowerRequest
 	err = database.DB.QueryRow(query, requestID).Scan(
-		&r.RequestID,
-		&r.DocNumber,
-		&r.DocDate,
-		&r.DepartmentID,
-		&r.DepartmentName,
-		&r.SectionID,
-		&r.SectionName, 
-		&r.PositionID,
-		&r.PositionName,
-		&r.EmployeeID,
-		&r.RequesterName,
-		&r.EmploymentType,
-		&r.ContractType,
-		&r.Reason,
-		&r.RequiredPositionName,
-		&r.MinAge, 
-		&r.MaxAge, 
-		&r.Gender,
-		&r.Nationality,
-		&r.Experience,
-		&r.EducationLevel,
-		&r.SpecialQualifications, 
-		&r.OriginStatus,
-		&r.HRStatus,
-		&r.OverallStatus,
-		&r.TargetHireDate,
-		&r.CreatedAt,
-		&r.UpdatedAt,
-	)
+	&r.RequestID,
+	&r.DocNumber,
+	&r.DocDate,
+	&r.DepartmentID,
+	&r.DepartmentName,
+	&r.SectionID,
+	&r.SectionName,
+	&r.PositionID,
+	&r.PositionName,
+	&r.EmployeeID,
+	&r.RequesterName,
+	&r.EmploymentType,
+	&r.ContractType,
+	&r.Reason,
+	&r.RequiredPositionName,
+	&r.MinAge,
+	&r.MaxAge,
+	&r.Gender,
+	&r.Nationality,
+	&r.Experience,
+	&r.EducationLevel,
+	&r.SpecialQualifications,
+	&r.OriginStatus,
+	&r.HRStatus,
+	&r.ManagementStatus,
+	&r.OverallStatus,
+	&r.TargetHireDate,
+	&r.CreatedAt,
+	&r.UpdatedAt,
+)
+
+// Set additional fields for frontend compatibility
+r.Division = r.DepartmentName
+r.Department = r.SectionName
+r.Requester = r.RequesterName
+r.PositionRequired = r.RequiredPositionName
+r.AgeFrom = r.MinAge
+r.AgeTo = r.MaxAge
+r.JobCode = r.PositionID
+r.ManagerStatus = r.OriginStatus
+r.CeoStatus = r.OverallStatus
+
+// Debug: Log the values to see what's being set
+log.Printf("DEBUG: EmploymentType='%s', ContractType='%s'", r.EmploymentType, r.ContractType)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

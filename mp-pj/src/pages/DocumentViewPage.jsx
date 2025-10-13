@@ -78,22 +78,23 @@ const DocumentViewPage = () => {
             documentDate: doc.doc_date ?? '',
             division: doc.department_name ?? '',
             department: doc.section_name ?? '',
-            employmentType: doc.employment_type_name ?? '',
-            contractType: doc.contract_type_name ?? '',
-            reason: doc.reason_name ?? '',
+            employmentType: doc.employmentType ?? '',
+            contractType: doc.contractType ?? '',
+            reason: doc.reason ?? '',
             requester: doc.requester_name ?? '',
-            jobCode: doc.requesting_pos_id ?? '',
+            jobCode: doc.requesting_pos_id ?? 0,
             positionRequired: doc.required_position_name ?? '',
             ageFrom: doc.min_age,
             ageTo: doc.max_age,
-            gender: doc.gender_name ?? '',
-            nationality: doc.nat_name ?? '',
-            experience: doc.exp_name ?? '',
-            educationLevel: doc.edu_name ?? '',
+            gender: doc.gender ?? '',
+            nationality: doc.nationality ?? '',
+            experience: doc.experience ?? '',
+            educationLevel: doc.educationLevel ?? '',
             specialQualifications: doc.special_qualifications ?? '',
             managerStatus: doc.origin_status,
             hrStatus: doc.hr_status,
             ceoStatus: doc.overall_status,
+            managementStatus: doc.management_status,
           };
           setDocument(transformedDoc);
           setError(null);
@@ -307,7 +308,7 @@ const DocumentViewPage = () => {
         </div>
       </div>
 
-      {notification.show && (
+      {notification.show && userRole !== 'admin' && (
         <div className="fixed top-16 right-5 z-50 animate-slide-in">
           <div
             className={`flex items-center gap-3 px-5 py-3 rounded-full shadow-lg backdrop-blur-sm ${
@@ -326,3 +327,4 @@ const DocumentViewPage = () => {
 };
 
 export default DocumentViewPage;
+

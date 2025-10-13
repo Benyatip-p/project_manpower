@@ -1,6 +1,6 @@
 package handlers
 
-func mapStatusForRole(role, origin, hr, overall string) string {
+func mapStatusForRole(role, origin, hr, management, overall string) string {
 	switch role {
 	case "Admin":
 		return overall // admin เห็นสถานะจริงเลย เช่น APPROVED / IN_PROGRESS
@@ -12,9 +12,11 @@ func mapStatusForRole(role, origin, hr, overall string) string {
 			return "รอผู้จัดการ HR อนุมัติ"
 		} else if overall == "WAITING_HR_DIRECTOR" {
 			return "รอผู้อำนวยการ HR อนุมัติ"
+		} else if overall == "WAITING_MANAGEMENT" {
+			return "รอฝ่ายบริหารอนุมัติ"
 		} else if overall == "APPROVED" {
 			return "อนุมัติเรียบร้อยแล้ว"
-		} else if overall == "REJECTED" {
+		} else if overall == "DISAPPROVED" {
 			return "ถูกปฏิเสธ"
 		}
 		return "กำลังดำเนินการ"
@@ -32,6 +34,8 @@ func mapStatusForRole(role, origin, hr, overall string) string {
 		}
 		if overall == "APPROVED" {
 			return "อนุมัติเรียบร้อยแล้ว"
+		} else if overall == "DISAPPROVED" {
+			return "ถูกปฏิเสธ"
 		}
 		return "กำลังดำเนินการ"
 	}

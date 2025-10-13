@@ -103,9 +103,10 @@ CREATE TABLE manpower_requests (
     education_level_id INT REFERENCES education_levels(edu_id),
     special_qualifications TEXT,
 
-    -- สถานะหลัก 3 ส่วน (คำนวณฝั่ง Go)
+    -- สถานะหลัก 4 ส่วน (origin, hr, management, overall)
     origin_status VARCHAR(50) DEFAULT 'DRAFT',
     hr_status VARCHAR(50) DEFAULT 'NONE',
+    management_status VARCHAR(50) DEFAULT 'NONE',
     overall_status VARCHAR(50) DEFAULT 'IN_PROGRESS',
 
     -- ผู้อนุมัติแต่ละขั้น
@@ -114,6 +115,7 @@ CREATE TABLE manpower_requests (
     approver_recruit_id VARCHAR(50),
     approver_hrmgr_id   VARCHAR(50),
     approver_hrdir_id   VARCHAR(50),
+    approver_mgmt_id    VARCHAR(50),
 
     target_hire_date DATE,
     current_status VARCHAR(50) DEFAULT 'รอ HR พิจารณา',
