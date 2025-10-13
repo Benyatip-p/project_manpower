@@ -3,6 +3,7 @@ import UserRowmanage from '../../components/UserRowmanage';
 import Pagination from '../../components/PaginationAdmin';
 import AddUserModal from '../../components/AddUserModal';
 import { SearchIcon, XIcon, PlusIcon } from '@heroicons/react/solid';
+import { getEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../services/api';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -17,24 +18,15 @@ function UserManage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('/api/admin/employees',{
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // ← ต้องใส่ตรงนี้
-        },
-      }); 
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data.map((user, index) => ({ 
-            ...user, 
-            id: index + 1, 
-        })));
-      } else {
-        console.error("Failed to fetch user list, status:", response.status);
-      }
+      const data = await getEmployees();
+      // ใช้ employeeId เป็น unique identifier แทน index
+      setUsers(data.map((user, index) => ({ 
+          ...user, 
+          id: user.employeeId, // ใช้ employeeId จาก backend แทน
+      })));
     } catch (error) {
       console.error('Error fetching user list:', error);
+      alert('ไม่สามารถดึงข้อมูลผู้ใช้งานได้ กรุณาลองใหม่อีกครั้ง');
     } finally {
       setLoading(false);
     }
@@ -81,27 +73,41 @@ function UserManage() {
 
   const handleEditUser = (userId) => {
     const user = users.find(u => u.id === userId);
+    console.log('Editing user:', user);
+    console.log('Employee ID to edit:', user.employeeId);
     setEditingUser(user);
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (userId) => {
+  const handleDeleteUser = async (userId) => {
     const user = users.find(u => u.id === userId);
+    console.log('Deleting user:', user);
+    console.log('Employee ID to delete:', user.employeeId);
+    
     if (window.confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้: ${user.firstName} ${user.lastName} (${user.employeeId})?`)) {
-      setUsers(prevUsers => prevUsers.filter(u => u.id !== userId));
-      alert(`ลบผู้ใช้ ${user.firstName} ${user.lastName} สำเร็จ (Mock Delete)`);
-      if (paginatedUsers.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
+      try {
+        const result = await deleteEmployee(user.employeeId);
+        
+        if (result.success) {
+          alert(`ลบผู้ใช้ ${user.firstName} ${user.lastName} สำเร็จ`);
+          fetchUsers();
+          if (paginatedUsers.length === 1 && currentPage > 1) {
+            setCurrentPage(currentPage - 1);
+          }
+        } else {
+          alert(`เกิดข้อผิดพลาดในการลบผู้ใช้งาน: ${result.error || result.message}`);
+        }
+      } catch (error) {
+        alert(`เกิดข้อผิดพลาด: ${error.message}`);
+        console.error('Delete Employee Error:', error);
       }
     }
   };
 
   const handleSaveUser = async (userData) => {
     const isEditing = !!editingUser;
-    const url = '/api/admin/employees';
     
     const dataToSubmit = {
-        employeeId: userData.employeeId,
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
@@ -112,16 +118,13 @@ function UserManage() {
     };
     
     if (!isEditing) {
+        // สำหรับการเพิ่มใหม่ ต้องมี employeeId
+        dataToSubmit.employeeId = userData.employeeId;
+        
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(dataToSubmit),
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
+            const result = await createEmployee(dataToSubmit);
+            
+            if (result.success) {
                 alert(`เพิ่มผู้ใช้งานสำเร็จ!`);
                 fetchUsers();
             } else {
@@ -130,15 +133,32 @@ function UserManage() {
                 return;
             }
         } catch (error) {
-            alert('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
-            console.error('Fetch Error:', error);
+            alert(`เกิดข้อผิดพลาด: ${error.message}`);
+            console.error('Create Employee Error:', error);
             return;
         }
     } else {
-        setUsers(prevUsers => 
-            prevUsers.map(u => u.id === editingUser.id ? { ...userData, id: editingUser.id } : u)
-        );
-        alert('แก้ไขข้อมูลผู้ใช้งานสำเร็จ! (Mock Edit)');
+        // สำหรับการแก้ไข ไม่ต้องส่ง password ถ้าไม่ได้เปลี่ยน
+        if (!userData.password || userData.password === '') {
+            delete dataToSubmit.password;
+        }
+        
+        try {
+            const result = await updateEmployee(editingUser.employeeId, dataToSubmit);
+            
+            if (result.success) {
+                alert('แก้ไขข้อมูลผู้ใช้งานสำเร็จ!');
+                fetchUsers();
+            } else {
+                alert(`เกิดข้อผิดพลาดในการแก้ไขผู้ใช้งาน: ${result.error || result.message}`);
+                console.error("API Error:", result);
+                return;
+            }
+        } catch (error) {
+            alert(`เกิดข้อผิดพลาด: ${error.message}`);
+            console.error('Update Employee Error:', error);
+            return;
+        }
     }
 
     handleCloseModal();

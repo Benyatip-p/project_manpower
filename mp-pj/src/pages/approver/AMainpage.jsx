@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import UserStatusDropdown from '../../components/UserStatusDropdown';
 import UserListTable from '../../components/UserListTable';
 import Pagination from '../../components/Pagination';
-import { rawDocuments as mockApiData } from '../../data/mockData'; 
+import { getUserRequests } from '../../services/api'; 
 
 
 const AMainpage = () => {
@@ -19,15 +19,189 @@ const AMainpage = () => {
 
   const docNumberInputRef = useRef(null);
 
-  // useEffect ใช้สำหรับจำลองการดึงข้อมูลเมื่อคอมโพเนนต์ถูกโหลดครั้งแรก
+  // ฟังก์ชันแปลงสถานะตามตาราง workflow
+  const mapStatusForDisplay = (originStatus, hrStatus, overallStatus) => {
+    // *** เช็คกรณี REJECTED ก่อน ***
+    if (overallStatus === 'REJECTED') {
+      // ถ้า origin_status เป็น MGR_REJECTED = ผู้จัดการปฏิเสธ
+      if (originStatus === 'MGR_REJECTED') {
+        return {
+          managerStatus: 'ไม่อนุมัติ',
+          hrStatus: '-',
+          ceoStatus: '-'
+        };
+      }
+      // ถ้า origin_status เป็น DIR_REJECTED = ผู้อำนวยการปฏิเสธ
+      if (originStatus === 'DIR_REJECTED') {
+        return {
+          managerStatus: 'ไม่อนุมัติ',
+          hrStatus: '-',
+          ceoStatus: '-'
+        };
+      }
+      // กรณีอื่นๆ ที่ถูกปฏิเสธ
+      return {
+        managerStatus: 'ไม่อนุมัติ',
+        hrStatus: '-',
+        ceoStatus: '-'
+      };
+    }
+    
+    // กรณีที่ 0: แบบร่าง
+    if (originStatus === 'DRAFT') {
+      return {
+        managerStatus: 'แบบร่าง',
+        hrStatus: 'กำลังรอ',
+        ceoStatus: 'กำลังรอ'
+      };
+    }
+    
+    // กรณีที่ 1: ส่งคำขอแล้ว รอผู้จัดการแผนก
+    if (originStatus === 'SUBMITTED') {
+      return {
+        managerStatus: 'รอผู้จัดการแผนก',
+        hrStatus: 'กำลังรอ',
+        ceoStatus: 'กำลังรอ'
+      };
+    }
+    
+    // กรณีที่ 2: ผู้จัดการแผนกอนุมัติแล้ว รอผู้อำนวยการฝ่าย
+    if (originStatus === 'MGR_APPROVED') {
+      return {
+        managerStatus: 'รอผู้อำนวยการฝ่าย',
+        hrStatus: 'กำลังรอ',
+        ceoStatus: 'กำลังรอ'
+      };
+    }
+    
+    // === จากจุดนี้เป็นต้นไป origin_status = DIR_APPROVED แล้ว ===
+    
+    // กรณีที่ 3: ผอ.ฝ่ายอนุมัติแล้ว รอ Recruiter
+    if (originStatus === 'DIR_APPROVED' && hrStatus === 'WAITING_RECRUITER') {
+      return {
+        managerStatus: 'ได้รับการอนุมัติ',
+        hrStatus: 'รอ Recruiter',
+        ceoStatus: 'กำลังรอ'
+      };
+    }
+    
+    // กรณีที่ 4: Recruiter รับเคสแล้ว รอผู้จัดการ HR
+    if (originStatus === 'DIR_APPROVED' && hrStatus === 'HR_RECRUITER_APPROVED') {
+      return {
+        managerStatus: 'ได้รับการอนุมัติ',
+        hrStatus: 'รอผู้จัดการ HR',
+        ceoStatus: 'กำลังรอ'
+      };
+    }
+    
+    // เพิ่ม: รอผู้จัดการ HR (WAITING_HR_MANAGER)
+    if (originStatus === 'DIR_APPROVED' && (hrStatus === 'WAITING_HR_MANAGER' || overallStatus === 'WAITING_HR_MANAGER')) {
+      return {
+        managerStatus: 'ได้รับการอนุมัติ',
+        hrStatus: 'รอผู้จัดการ HR',
+        ceoStatus: 'กำลังรอ'
+      };
+    }
+    
+    // กรณีที่ 5: ผู้จัดการ HR อนุมัติแล้ว รอผอ.ฝ่าย HR
+    if (originStatus === 'DIR_APPROVED' && hrStatus === 'HR_MANAGER_APPROVED') {
+      return {
+        managerStatus: 'ได้รับการอนุมัติ',
+        hrStatus: 'ได้รับการอนุมัติ',
+        ceoStatus: 'รอผอ.ฝ่าย HR'
+      };
+    }
+    
+    // เพิ่ม: รอผอ.ฝ่าย HR (WAITING_HR_DIRECTOR)
+    if (originStatus === 'DIR_APPROVED' && (hrStatus === 'WAITING_HR_DIRECTOR' || overallStatus === 'WAITING_HR_DIRECTOR')) {
+      return {
+        managerStatus: 'ได้รับการอนุมัติ',
+        hrStatus: 'ได้รับการอนุมัติ',
+        ceoStatus: 'รอผอ.ฝ่าย HR'
+      };
+    }
+    
+    // กรณีที่ 6: ผอ.ฝ่าย HR อนุมัติแล้ว - เสร็จสมบูรณ์
+    if (originStatus === 'DIR_APPROVED' && hrStatus === 'HR_DIRECTOR_APPROVED' && overallStatus === 'APPROVED') {
+      return {
+        managerStatus: 'ได้รับการอนุมัติ',
+        hrStatus: 'ได้รับการอนุมัติ',
+        ceoStatus: 'ได้รับการอนุมัติ'
+      };
+    }
+    
+    // กรณี HR_DIRECTOR_APPROVED แต่ยังไม่ APPROVED สมบูรณ์
+    if (originStatus === 'DIR_APPROVED' && hrStatus === 'HR_DIRECTOR_APPROVED') {
+      return {
+        managerStatus: 'ได้รับการอนุมัติ',
+        hrStatus: 'ได้รับการอนุมัติ',
+        ceoStatus: 'กำลังรอ'
+      };
+    }
+    
+    // กรณี HR_INTAKE หรือสถานะอื่นๆ ของ HR เมื่อต้นสังกัดอนุมัติแล้ว
+    if (originStatus === 'DIR_APPROVED' && hrStatus === 'HR_INTAKE') {
+      return {
+        managerStatus: 'ได้รับการอนุมัติ',
+        hrStatus: 'HR_INTAKE',
+        ceoStatus: 'กำลังรอ'
+      };
+    }
+    
+    // Default fallback
+    return {
+      managerStatus: originStatus || 'กำลังรอ',
+      hrStatus: hrStatus || 'กำลังรอ',
+      ceoStatus: overallStatus || 'กำลังรอ'
+    };
+  };
+
+  // ฟังก์ชันดึงข้อมูลจาก API
+  const fetchRequests = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getUserRequests();
+      
+      // แปลงข้อมูลจาก API ให้ตรงกับ format ที่ตารางต้องการ
+      const formattedData = data.map((item) => {
+        // แปลงสถานะตามตาราง workflow
+        const displayStatus = mapStatusForDisplay(
+          item.origin_status, 
+          item.hr_status, 
+          item.overall_status
+        );
+        
+        return {
+          id: item.request_id,
+          documentNumber: item.doc_number || '-',
+          department: item.department_name || item.dept_name || '-',
+          position: item.required_position_name || '-',
+          quantity: item.num_required || 0,
+          requester: item.requester_name || '-',
+          // ใช้สถานะที่แปลงแล้ว
+          managerStatus: displayStatus.managerStatus,
+          hrStatus: displayStatus.hrStatus,
+          ceoStatus: displayStatus.ceoStatus,
+          // เก็บข้อมูลดิบไว้สำหรับการ debug หรือใช้งานอื่น
+          originStatus: item.origin_status,
+          rawHrStatus: item.hr_status,
+          overallStatus: item.overall_status,
+        };
+      });
+      
+      setDocuments(formattedData);
+    } catch (error) {
+      console.error('Error fetching requests:', error);
+      alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // เรียกใช้งานเมื่อโหลดหน้า
   useEffect(() => {
-      console.log("เริ่มดึงข้อมูลเอกสาร..."); 
-      setTimeout(() => {
-        setDocuments(mockApiData); // <<-- ใช้ข้อมูลที่ import เข้ามา
-        setIsLoading(false);      
-        console.log("ดึงข้อมูลสำเร็จ!");
-      }, 1000);
-    }, []);
+    fetchRequests();
+  }, []);
 
   const handleSearch = () => {
     setFilterDocNumber(inputDocNumber);

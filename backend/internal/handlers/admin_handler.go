@@ -35,3 +35,47 @@ func CreateEmployeeHandler(c *gin.Context) {
 		"message": "Employee created successfully!",
 	})
 }
+
+func UpdateEmployeeHandler(c *gin.Context) {
+	employeeID := c.Param("id")
+	
+	var req models.UpdateEmployeeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload", "details": err.Error()})
+		return
+	}
+
+	err := services.UpdateEmployee(employeeID, &req)
+	if err != nil {
+		if err.Error() == "employee not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Employee updated successfully!",
+	})
+}
+
+func DeleteEmployeeHandler(c *gin.Context) {
+	employeeID := c.Param("id")
+
+	err := services.DeleteEmployee(employeeID)
+	if err != nil {
+		if err.Error() == "employee not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Employee deleted successfully!",
+	})
+}

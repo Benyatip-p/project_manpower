@@ -73,7 +73,13 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role || !formData.employeeId || !formData.password) {
+    // เมื่อเพิ่มใหม่ต้องมีรหัสผ่าน แต่เมื่อแก้ไขไม่บังคับ
+    if (!editingUser && !formData.password) {
+        alert('กรุณากรอกรหัสผ่าน');
+        return;
+    }
+    
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role || !formData.employeeId) {
         alert('กรุณากรอกข้อมูลที่จำเป็นทั้งหมดให้ครบถ้วน');
         return;
     }
@@ -88,7 +94,7 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center z-40" onClick={handleClose} style={{ backgroundColor: 'transparent' }}>
+    <div className="fixed inset-0 bg-[rgba(75,85,99,0.5)] backdrop-blur-lg flex justify-center items-center z-40" onClick={handleClose} style={{ backgroundColor: 'transparent' }}>
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg z-50" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-2xl font-bold mb-4">
           {editingUser ? 'แก้ไขข้อมูลผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
@@ -185,14 +191,17 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
+              <label className="block text-sm font-medium text-gray-700">
+                รหัสผ่าน {editingUser && <span className="text-xs text-gray-500">(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</span>}
+              </label>
               <input 
                 type="password" 
                 name="password" 
                 value={formData.password} 
                 onChange={handleChange} 
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" 
-                required 
+                required={!editingUser}
+                placeholder={editingUser ? "เว้นว่างถ้าไม่ต้องการเปลี่ยน" : ""}
               />
             </div>
           </div>

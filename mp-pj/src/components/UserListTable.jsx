@@ -12,9 +12,15 @@ const UserListTable = ({
   onApprove,
   onReject,
   role = 'user',
-  isApprovalMode = false
+  isApprovalMode = false,
+  canApprove // <-- เพิ่ม prop นี้: ฟังก์ชันเช็คว่าเอกสารนี้สามารถอนุมัติได้หรือไม่
 }) => {
-  console.log('Data received in UserListTable:', documents); 
+  console.log('=== UserListTable Props ===');
+  console.log('Data received in UserListTable:', documents.length, 'items'); 
+  console.log('isApprovalMode:', isApprovalMode);
+  console.log('canApprove prop:', canApprove);
+  console.log('canApprove type:', typeof canApprove);
+  console.log('canApprove function exists:', typeof canApprove === 'function');
 
   if (isLoading) {
     return <div className="p-4 text-center text-gray-500">กำลังโหลดข้อมูล...</div>;
@@ -45,9 +51,9 @@ const UserListTable = ({
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ต้นสังกัด</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">HR</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ฝ่ายบริหาร</th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">การอนุมัติ</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ครบกำหนด</th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">การอนุมัติ</th>
+              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">เพิ่มเติม</th>
             </tr>
           </thead>
           
@@ -60,22 +66,43 @@ const UserListTable = ({
               if (role === 'manager') {
                 relevantStatus = doc.managerStatus;
                 relevantApproverType = 'managerStatus';
-              } else if (role === 'hr') {
+              } else if (role === 'hr' || role === 'hr_manager') {
+                // Recruiter และ HR Manager ดูคอลัมน์ HR
                 relevantStatus = doc.hrStatus;
                 relevantApproverType = 'hrStatus';
-              } else if (role === 'ceo') { //admin = ผู้บริหาร
+              } else if (role === 'hr_director' || role === 'ceo') {
+                // HR Director และ Director ดูคอลัมน์ฝ่ายบริหาร
                 relevantStatus = doc.ceoStatus;
                 relevantApproverType = 'ceoStatus';
               }
               
-              const canApprove = isApprovalMode && relevantStatus === 'รออนุมัติ';
+              // เช็คว่าสถานะเป็นสถานะที่ role นี้สามารถอนุมัติได้หรือไม่ (legacy logic)
+              let canApproveByStatus = false;
+              if (isApprovalMode && relevantStatus) {
+                if (role === 'manager') {
+                  // Manager อนุมัติได้เฉพาะ "รอผู้จัดการแผนก"
+                  canApproveByStatus = relevantStatus === 'รอผู้จัดการแผนก';
+                } else if (role === 'ceo') {
+                  // Director อนุมัติได้เฉพาะ "รอผู้อำนวยการฝ่าย"
+                  canApproveByStatus = relevantStatus === 'รอผู้อำนวยการฝ่าย';
+                } else if (role === 'hr') {
+                  // Recruiter อนุมัติได้เฉพาะ "รอ Recruiter"
+                  canApproveByStatus = relevantStatus === 'รอ Recruiter';
+                } else if (role === 'hr_manager') {
+                  // HR Manager อนุมัติได้เฉพาะ "รอผู้จัดการ HR"
+                  canApproveByStatus = relevantStatus === 'รอผู้จัดการ HR';
+                } else if (role === 'hr_director') {
+                  // HR Director อนุมัติได้เฉพาะ "รอผอ.ฝ่าย HR"
+                  canApproveByStatus = relevantStatus === 'รอผอ.ฝ่าย HR';
+                }
+              }
 
               // --- ส่วนที่แก้ไข ---
               // สร้าง basePath (Path พื้นฐาน) ให้ตรงกับโครงสร้างใน AppRoutes.js
               let basePath;
               if (role === 'user') {
                 basePath = '/user';
-              } else if (role === 'manager' || role === 'hr' || role === 'ceo') {
+              } else if (role === 'manager' || role === 'hr' || role === 'hr_manager' || role === 'hr_director' || role === 'ceo') {
                 // สำหรับผู้อนุมัติทุกคน ให้ใช้ path /approver ตามที่กำหนดใน Router
                 basePath = '/approver';
               } else {
@@ -94,31 +121,38 @@ const UserListTable = ({
                   <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.managerStatus} /></td>
                   <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.hrStatus} /></td>
                   <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.ceoStatus} /></td>
-                
+                  
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">{doc.dueDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
-                    {canApprove ? (
-                      <div className="flex justify-center items-center space-x-2">
-                        <button
-                          onClick={() => onApprove(doc.id, relevantApproverType)}
-                          className="p-1 text-green-500 rounded-full hover:bg-green-100 focus:outline-none"
-                          title="อนุมัติ"
-                        >
-                          <CheckIcon className="w-6 h-6" />
-                        </button>
-                        <button
-                          onClick={() => onReject(doc.id, relevantApproverType)}
-                          className="p-1 text-red-500 rounded-full hover:bg-red-100 focus:outline-none"
-                          title="ไม่อนุมัติ"
-                        >
-                          <XIcon className="w-6 h-6" />
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
+                    {(() => {
+                      const showButtons = isApprovalMode && canApprove && canApprove(doc);
+                      console.log(`Doc ${doc.documentNumber}: isApprovalMode=${isApprovalMode}, canApprove exists=${!!canApprove}, canApprove(doc)=${canApprove ? canApprove(doc) : 'N/A'}, showButtons=${showButtons}`);
+                      
+                      if (showButtons) {
+                        return (
+                          <div className="flex justify-center items-center space-x-2">
+                            <button
+                              onClick={() => onApprove(doc.id, relevantApproverType)}
+                              className="p-1 text-green-500 rounded-full hover:bg-green-100 focus:outline-none"
+                              title="อนุมัติ"
+                            >
+                              <CheckIcon className="w-6 h-6" />
+                            </button>
+                            <button
+                              onClick={() => onReject(doc.id, relevantApproverType)}
+                              className="p-1 text-red-500 rounded-full hover:bg-red-100 focus:outline-none"
+                              title="ไม่อนุมัติ"
+                            >
+                              <XIcon className="w-6 h-6" />
+                            </button>
+                          </div>
+                        );
+                      } else {
+                        return <span className="text-gray-400">-</span>;
+                      }
+                    })()}
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">{doc.dueDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex items-center justify-center space-x-4">
                       {/* แก้ไขบรรทัดนี้: ให้ใช้ basePath ที่เราสร้างขึ้น */}

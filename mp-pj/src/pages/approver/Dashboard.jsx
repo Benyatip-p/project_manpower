@@ -6,17 +6,7 @@ import {
 
 // Import a CSS file for styling
 import './Dashboard.css';
-import { generateDashboardData } from '../../data/mockData';
-
-
-const fetchDashboardData = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const dashboardData = generateDashboardData(); // <<-- เรียกใช้ฟังก์ชันที่ import มา
-      resolve(dashboardData);
-    }, 1500); 
-  });
-};
+import { getDashboardOverview } from '../../services/api';
 
 // --- Components ย่อยๆ สำหรับแสดงผลสถานะ ---
 const LoadingSpinner = () => (
@@ -51,8 +41,35 @@ function Dashboard() {
         setIsLoading(true);
         setError(null);
         
-        const data = await fetchDashboardData(); 
-        setDashboardData(data);
+        // เรียก API จริง
+        const apiResponse = await getDashboardOverview();
+        
+        // แปลง API response เป็นรูปแบบที่ UI ต้องการ
+        const transformedData = {
+          stats: {
+            totalRequests: apiResponse.totals?.requests || 0,
+            pendingRequests: apiResponse.totals?.pending || 0,
+            hireRate: apiResponse.totals?.approved || 0,
+            resignationRate: apiResponse.totals?.rejected || 0,
+          },
+          pieData: [
+            { 
+              name: 'คำร้องที่อนุมัติแล้ว', 
+              value: apiResponse.approval_pie?.approved || 0 
+            },
+            { 
+              name: 'คำร้องรออนุมัติ', 
+              value: apiResponse.approval_pie?.waiting || 0 
+            },
+          ],
+          lineData: (apiResponse.per_department || []).map(dept => ({
+            department: dept.dept_name || 'N/A',
+            hires: dept.new_hires || 0,
+            resignations: dept.resigns || 0,
+          })),
+        };
+
+        setDashboardData(transformedData);
 
       } catch (err) {
         setError('ไม่สามารถดึงข้อมูลจากเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');
@@ -102,11 +119,11 @@ function Dashboard() {
             <h1>{dashboardData.stats.pendingRequests}</h1>
           </div>
           <div className='card'>
-            <h3>อัตราการจ้างงานใหม่</h3>
+            <h3>คำร้องที่อนุมัติแล้ว</h3>
             <h1>{dashboardData.stats.hireRate}</h1>
           </div>
           <div className='card'>
-            <h3>อัตราการลาออก</h3>
+            <h3>คำร้องที่ไม่อนุมัติ</h3>
             <h1>{dashboardData.stats.resignationRate}</h1>
           </div>
         </div>

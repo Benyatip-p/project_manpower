@@ -24,13 +24,14 @@ import (
 	"mantest/backend/internal/handlers"
 	"mantest/backend/internal/middlewares"
 	"net/http"
-	
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "mantest/backend/docs"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	_ "mantest/backend/docs" 
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -52,7 +53,7 @@ func main() {
 		c.String(http.StatusOK, "API Server is running!")
 	})
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	
+
 	api := router.Group("/api")
 	{
 		api.POST("/login", handlers.LoginHandler)
@@ -69,6 +70,7 @@ func main() {
 			user := protected.Group("/user")
 			{
 				user.GET("/requests", handlers.GetManpowerRequestsHandler)
+				user.GET("/requests/:id", handlers.GetManpowerRequestByIDHandler)
 				// user.POST("/requests", handlers.CreateManpowerRequestHandler)
 
 				user.POST("/requests/submit", handlers.CreateAndSubmitManpowerRequestHandler)
@@ -78,13 +80,15 @@ func main() {
 			// approve := protected.Group("/approve")
 			// {
 			// 	approve.GET("/requests", handlers.GetManpowerRequestsHandler)
-				// user.POST("/requests", handlers.CreateManpowerRequestHandler)
+			// user.POST("/requests", handlers.CreateManpowerRequestHandler)
 			// }
 
 			admin := protected.Group("/admin")
 			{
 				admin.GET("/employees", handlers.GetEmployeesHandler)
-				admin.POST("/employees", handlers.CreateEmployeeHandler) 
+				admin.POST("/employees", handlers.CreateEmployeeHandler)
+				admin.PUT("/employees/:id", handlers.UpdateEmployeeHandler)
+				admin.DELETE("/employees/:id", handlers.DeleteEmployeeHandler)
 			}
 		}
 	}

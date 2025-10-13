@@ -1,23 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const UserRForm = () => {
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     documentDate: '',
     departmentId: '',
     sectionId: '',
+    positionId: '', // เพิ่มฟิลด์นี้สำหรับตำแหน่งที่ต้องการขอ
     employmentTypeId: '',
     contractTypeId: '',
     requestReasonId: '',
-    requesterName: '',
-    positionId: '',
-    requiredPositionId: '',
+    requiredPositionName: '',
+    numRequired: 1,
     ageFrom: '',
     ageTo: '',
     genderId: '',
     nationalityId: '',
     experienceId: '',
     educationLevelId: '',
-    specialQualifications: ''
+    specialQualifications: '',
+    targetHireDate: ''
   });
 
   const [masterData, setMasterData] = useState({
@@ -77,6 +81,7 @@ const UserRForm = () => {
   };
 
   const handleDateChange = (e) => {
+    const { name } = e.target;
     let value = e.target.value.replace(/\D/g, '');
 
     if (value.length >= 2) {
@@ -86,7 +91,7 @@ const UserRForm = () => {
       value = value.slice(0, 5) + '/' + value.slice(5, 9);
     }
 
-    setFormData(prev => ({ ...prev, documentDate: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const showNotification = (message, type = 'success') => {
@@ -105,25 +110,53 @@ const UserRForm = () => {
       documentDate: formattedDate,
       departmentId: '',
       sectionId: '',
+      positionId: '',
       employmentTypeId: '',
       contractTypeId: '',
       requestReasonId: '',
-      requesterName: '',
-      positionId: '',
-      requiredPositionId: '',
+      requiredPositionName: '',
+      numRequired: 1,
       ageFrom: '',
       ageTo: '',
       genderId: '',
       nationalityId: '',
       experienceId: '',
       educationLevelId: '',
-      specialQualifications: ''
+      specialQualifications: '',
+      targetHireDate: ''
     });
     showNotification('เริ่มต้นฟอร์มใหม่', 'success');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation
+    console.log('=== Validation Check ===');
+    console.log('departmentId:', formData.departmentId);
+    console.log('positionId:', formData.positionId);
+    console.log('requiredPositionName:', formData.requiredPositionName);
+    console.log('employmentTypeId:', formData.employmentTypeId);
+    console.log('contractTypeId:', formData.contractTypeId);
+    console.log('requestReasonId:', formData.requestReasonId);
+    
+    if (!formData.departmentId || !formData.positionId) {
+      showNotification('กรุณาเลือกฝ่ายและตำแหน่งงาน', 'error');
+      console.error('Validation Error: Missing department or position');
+      console.log('Current formData:', formData);
+      return;
+    }
+    
+    if (!formData.requiredPositionName) {
+      showNotification('กรุณากรอกชื่อตำแหน่งที่ต้องการ', 'error');
+      return;
+    }
+    
+    if (!formData.employmentTypeId || !formData.contractTypeId || !formData.requestReasonId) {
+      showNotification('กรุณากรอกประเภทการจ้าง ประเภทสัญญา และเหตุผลการร้องขอ', 'error');
+      console.error('Validation Error: Missing required fields');
+      return;
+    }
 
     if (formData.ageFrom && formData.ageTo) {
       if (parseInt(formData.ageFrom) > parseInt(formData.ageTo)) {
@@ -133,43 +166,59 @@ const UserRForm = () => {
       }
     }
 
+    // สร้าง payload ตามที่ Backend ต้องการ
     const dataToSubmit = {
-      documentDate: formData.documentDate,
-      department: getNameFromId(formData.departmentId, 'departments'),
-      section: getNameFromId(formData.sectionId, 'sections'),
-      employmentType: getNameFromId(formData.employmentTypeId, 'employmentTypes'),
-      contractType: getNameFromId(formData.contractTypeId, 'contractTypes'),
-      requestReason: getNameFromId(formData.requestReasonId, 'requestReasons'),
-      requesterName: formData.requesterName,
-      positionId: formData.positionId,
-      positionRequire: getNameFromId(formData.requiredPositionId, 'positions'),
-      ageFrom: formData.ageFrom,
-      ageTo: formData.ageTo,
-      gender: getNameFromId(formData.genderId, 'genders'),
-      nationality: getNameFromId(formData.nationalityId, 'nationalities'),
-      experience: getNameFromId(formData.experienceId, 'experiences'),
-      educationLevel: getNameFromId(formData.educationLevelId, 'educationLevels'),
-      specialQualifications: formData.specialQualifications,
+      // ข้อมูลแผนก/ฝ่าย/ตำแหน่งที่ต้องการขอ (จากฟอร์ม)
+      requesting_dept_id: parseInt(formData.departmentId),
+      requesting_section_id: formData.sectionId ? parseInt(formData.sectionId) : null,
+      requesting_pos_id: parseInt(formData.positionId),
+      
+      required_position_name: formData.requiredPositionName,
+      num_required: parseInt(formData.numRequired) || 1,
+      employment_type_id: parseInt(formData.employmentTypeId),
+      contract_type_id: parseInt(formData.contractTypeId),
+      reason_id: parseInt(formData.requestReasonId),
+      min_age: formData.ageFrom ? parseInt(formData.ageFrom) : null,
+      max_age: formData.ageTo ? parseInt(formData.ageTo) : null,
+      gender_id: formData.genderId ? parseInt(formData.genderId) : null,
+      nationality_id: formData.nationalityId ? parseInt(formData.nationalityId) : null,
+      experience_id: formData.experienceId ? parseInt(formData.experienceId) : null,
+      education_level_id: formData.educationLevelId ? parseInt(formData.educationLevelId) : null,
+      special_qualifications: formData.specialQualifications || '',
+      target_hire_date: formData.targetHireDate || null // ตอนนี้เป็น YYYY-MM-DD แล้ว
     };
-
 
     console.log('กำลังส่งข้อมูล:', dataToSubmit);
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/user/requests/submit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+         },
         body: JSON.stringify(dataToSubmit)
       });
 
+      console.log('Response Status:', response.status);
+      console.log('Response OK:', response.ok);
+      
       const data = await response.json();
+      console.log('Response Data:', data);
 
       console.log('Response จาก Server:', data);
 
-      if (response.ok && data.success) {
-        console.log('บันทึกข้อมูลสำเร็จ ID:', data.id);
-        showNotification('บันทึกข้อมูลเสร็จสิ้น', 'success');
-        setTimeout(() => handleClear(), 1500);
+      // เช็ค status 200-299 (OK, Created, etc.) ถือว่าสำเร็จ
+      if (response.ok) {
+        console.log('บันทึกข้อมูลสำเร็จ:', data);
+        showNotification('บันทึกข้อมูลเสร็จสิ้น กำลังกลับไปหน้ารายการ...', 'success');
+        
+        // รอ 2 วินาทีเพื่อให้ database commit และ user เห็น message
+        // ส่ง state เพื่อบังคับให้ fetch ข้อมูลใหม่
+        setTimeout(() => {
+          navigate('/user', { state: { refresh: Date.now() } });
+        }, 2000);
       } else {
         const errorMessage = data.message || data.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
         console.error('บันทึกไม่สำเร็จ:', errorMessage);
@@ -190,22 +239,8 @@ const UserRForm = () => {
         <hr className="my-12 h-0.5 border-t-0 bg-neutral-200 opacity-100" />
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">วันที่เอกสาร</label>
-              <input
-                type="text"
-                name="documentDate"
-                value={formData.documentDate}
-                onChange={handleDateChange}
-                placeholder="DD/MM/YYYY"
-                maxLength="10"
-                required
-                className="w-64 max-w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-              />
-            </div>
-          </div>
-
+          {/* วันที่เอกสารจะถูกบันทึกอัตโนมัติโดย Backend */}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">ฝ่าย</label>
@@ -229,14 +264,30 @@ const UserRForm = () => {
                 name="sectionId"
                 value={formData.sectionId}
                 onChange={handleChange}
-                required
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-white"
               >
-                <option value="">-- เลือกแผนก --</option>
+                <option value="">-- เลือกแผนก (ถ้ามี) --</option>
                 {masterData.sections.map((section) => (
                   <option key={section.id} value={section.id}>{section.name}</option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">ตำแหน่งงาน (กลุ่มงาน)</label>
+              <select
+                name="positionId"
+                value={formData.positionId}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-white"
+              >
+                <option value="">-- เลือกตำแหน่งงาน --</option>
+                {masterData.positions.map((position) => (
+                  <option key={position.id} value={position.id}>{position.name}</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">เลือกกลุ่มตำแหน่งงานที่ต้องการ เช่น ผู้จัดการ, เจ้าหน้าที่, พนักงาน</p>
             </div>
           </div>
 
@@ -290,52 +341,53 @@ const UserRForm = () => {
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">ชื่อผู้ร้องขอ</label>
-              <input
-                type="text"
-                name="requesterName"
-                value={formData.requesterName}
-                onChange={handleChange}
-                placeholder=""
-                required
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
-              />
-            </div>
+            <div></div> {/* ช่องว่าง */}
           </div>
 
           <hr className="my-12 h-0.5 border-t-0 bg-neutral-200 opacity-100" />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">รหัสตำแหน่งงาน</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">ชื่อตำแหน่งที่ต้องการ (Job Title)</label>
               <input
                 type="text"
-                name="positionId"
-                value={formData.positionId}
+                name="requiredPositionName"
+                value={formData.requiredPositionName}
                 onChange={handleChange}
-                placeholder=""
+                placeholder="เช่น Senior Marketing Officer, HR Recruiter, Full-Stack Developer"
+                required
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+              />
+              <p className="text-xs text-gray-500 mt-1">ระบุชื่อตำแหน่งและรายละเอียดที่ต้องการอย่างชัดเจน</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">จำนวนคนที่ต้องการ</label>
+              <input
+                type="number"
+                name="numRequired"
+                value={formData.numRequired}
+                onChange={handleChange}
+                placeholder="1"
+                min="1"
                 required
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
               />
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">ตำแหน่งที่ต้องการ</label>
-              <select
-                name="requiredPositionId"
-                value={formData.requiredPositionId}
+              <label className="block text-sm font-semibold text-gray-700 mb-2">วันที่ต้องการให้เริ่มงาน</label>
+              <input
+                type="date"
+                name="targetHireDate"
+                value={formData.targetHireDate}
                 onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-white"
-              >
-                <option value="">-- เลือกตำแหน่ง --</option>
-                {masterData.positions.map((pos) => (
-                  <option key={pos.id} value={pos.id}>{pos.name}</option>
-                ))}
-              </select>
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
+              />
             </div>
+            <div></div> {/* ช่องว่างเพื่อ layout */}
           </div>
 
           <hr className="my-12 h-0.5 border-t-0 bg-neutral-200 opacity-100" />
