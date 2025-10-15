@@ -18,10 +18,24 @@ const ApproverStatusCell = ({
 }) => {
 
   // เงื่อนไข: ถ้าอยู่ใน "โหมดอนุมัติ" และสถานะคือ "รออนุมัติ" ให้แสดงปุ่ม
-  if (isApprovalMode && status === 'รออนุมัติ') {
+  const isPending = (s) => {
+    if (!s) return false;
+    const thai = String(s).trim();
+    const up = thai.toUpperCase();
+    return (
+      thai === 'รออนุมัติ' ||
+      thai === 'รอการอนุมัติ' ||
+      up === 'IN_PROGRESS' ||
+      up === 'SUBMITTED' ||
+      up === 'MGR_APPROVED' ||
+      up.includes('WAITING')
+    );
+  };
+
+  if (isApprovalMode && isPending(status)) {
     return (
       <div className="flex items-center justify-center space-x-2">
-        <StatusBadge status={status} /> {/* <-- ตอนนี้จะเรียกใช้ Component ที่ถูกต้องแล้ว */}
+        <StatusBadge status={status} />
         <button
           onClick={() => onApprove(doc.id, approverType)}
           className="text-green-500 hover:text-green-700 focus:outline-none"

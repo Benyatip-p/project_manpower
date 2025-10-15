@@ -14,7 +14,9 @@ import (
 var jwtSecret = []byte("YOUR_ULTRA_SECURE_SECRET_KEY")
 
 func Authenticate(email, password string) (string, string, string, error) {
-	email = strings.ToLower(email)
+	// Normalize credentials to avoid case/whitespace login mismatches
+	email = strings.ToLower(strings.TrimSpace(email))
+	password = strings.TrimSpace(password)
 
 	var (
 		employeeID, storedPassword, roleName string
@@ -23,12 +25,12 @@ func Authenticate(email, password string) (string, string, string, error) {
 	)
 
 	query := `
-        SELECT e.employee_id, e.password, r.role_name,
-               e.dept_id, e.pos_id, e.section_id
-        FROM employees e
-        JOIN roles r ON e.role_id = r.role_id
-        WHERE e.email = $1 AND e.status = 'Active'
-    `
+	       SELECT e.employee_id, e.password, r.role_name,
+	              e.dept_id, e.pos_id, e.section_id
+	       FROM employees e
+	       JOIN roles r ON e.role_id = r.role_id
+	       WHERE LOWER(e.email) = LOWER($1) AND e.status = 'Active'
+	   `
 	err := database.DB.QueryRow(query, email).Scan(
 		&employeeID, &storedPassword, &roleName,
 		&deptID, &posID, &sectionID,
@@ -47,6 +49,7 @@ func Authenticate(email, password string) (string, string, string, error) {
 		return "", "", "", errors.New("authentication failed: invalid credentials")
 	}
 
+	// Normalize email to lowercase for token claim consistency
 	claims := jwt.MapClaims{
 		"employee_id": employeeID,
 		"email":       email,

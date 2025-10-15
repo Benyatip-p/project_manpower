@@ -96,14 +96,39 @@ const Approve = () => {
 
   const filteredDocuments = useMemo(() => {
     const trimmedSearch = inputDocNumber.trim().toLowerCase();
-    return documents.filter(doc => {
-      const statusMatch = inputStatus === '' ||
-        doc.managerStatus === inputStatus ||
-        doc.hrStatus === inputStatus ||
-        doc.ceoStatus === inputStatus;
 
-      const searchMatch = trimmedSearch === '' ||
-        doc.documentNumber.toLowerCase().includes(trimmedSearch);
+    // Canonicalize selected Thai status to a base category
+    const toCanonical = (thai) => {
+      if (!thai) return '';
+      if (thai === 'ผ่านการอนุมัติ') return 'อนุมัติ';
+      if (thai === 'รออนุมัติ' || thai === 'รอการอนุมัติ' || String(thai).toLowerCase() === 'pending') return 'รอการอนุมัติ';
+      if (thai === 'อนุมัติ') return 'อนุมัติ';
+      if (thai === 'ไม่อนุมัติ') return 'ไม่อนุมัติ';
+      return thai;
+    };
+
+    // Map backend status codes to Thai filter categories
+    const codeToCategory = (code) => {
+      if (!code || code === 'NONE') return '';
+      const c = String(code).toUpperCase();
+      if (c === 'DISAPPROVED' || c.includes('REJECT')) return 'ไม่อนุมัติ';
+      if (c.includes('APPROVED') || c === 'APPROVED') return 'อนุมัติ';
+      if (c === 'IN_PROGRESS' || c.includes('WAITING') || c === 'SUBMITTED' || c === 'MGR_APPROVED') return 'รอการอนุมัติ';
+      return '';
+    };
+
+    const selected = toCanonical(inputStatus);
+
+    return documents.filter(doc => {
+      const statusMatch =
+        selected === '' ||
+        codeToCategory(doc.managerStatus) === selected ||
+        codeToCategory(doc.hrStatus) === selected ||
+        codeToCategory(doc.ceoStatus) === selected;
+
+      const searchMatch =
+        trimmedSearch === '' ||
+        (doc.documentNumber || '').toLowerCase().includes(trimmedSearch);
 
       return statusMatch && searchMatch;
     });

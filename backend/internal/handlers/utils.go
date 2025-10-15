@@ -16,7 +16,7 @@ func mapStatusForRole(role, origin, hr, management, overall string) string {
 			return "รอฝ่ายบริหารอนุมัติ"
 		} else if overall == "APPROVED" {
 			return "อนุมัติเรียบร้อยแล้ว"
-		} else if overall == "DISAPPROVED" {
+		} else if overall == "REJECTED" {
 			return "ถูกปฏิเสธ"
 		}
 		return "กำลังดำเนินการ"
@@ -34,7 +34,7 @@ func mapStatusForRole(role, origin, hr, management, overall string) string {
 		}
 		if overall == "APPROVED" {
 			return "อนุมัติเรียบร้อยแล้ว"
-		} else if overall == "DISAPPROVED" {
+		} else if overall == "REJECTED" {
 			return "ถูกปฏิเสธ"
 		}
 		return "กำลังดำเนินการ"

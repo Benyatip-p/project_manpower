@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { TrashIcon, EyeIcon } from "@heroicons/react/solid";
 import ApproverStatusCell from './ApproverStatusCell';
 
-const UserListTable = ({ 
-  documents, 
-  isLoading, 
+const UserListTable = ({
+  documents,
+  isLoading,
   onDelete,
   role = 'user'
 }) => {
@@ -13,6 +13,7 @@ const UserListTable = ({
   if (isLoading) {
     return <div className="p-4 text-center text-gray-500">กำลังโหลดข้อมูล...</div>;
   }
+
   if (!documents || documents.length === 0) {
     return <div className="p-4 text-center text-gray-500">ไม่พบเอกสาร</div>;
   }
@@ -41,7 +42,7 @@ const UserListTable = ({
               <th scope="col" className="px-6 py-3 text-center">Actions</th>
             </tr>
           </thead>
-          
+
           <tbody className="bg-white divide-y divide-gray-200">
             {documents.map((doc, index) => {
               let basePath;
@@ -53,18 +54,43 @@ const UserListTable = ({
                 basePath = `/${role}`;
               }
 
+              // แปลงวันที่เอกสารให้แสดง dd/mm/yyyy
+              const formatDate = (inputDate) => {
+                if (!inputDate) return '-';
+
+                try {
+                  const d = new Date(inputDate);
+                  if (isNaN(d)) return inputDate;
+
+                  const day = String(d.getDate()).padStart(2, '0');
+                  const month = String(d.getMonth() + 1).padStart(2, '0');
+                  const year = d.getFullYear();
+
+                  return `${day}/${month}/${year}`;
+                } catch {
+                  return inputDate;
+                }
+              };
+
               return (
                 <tr key={doc.id || index} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap text-center">{index + 1}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">{doc.documentNumber}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">{doc.documentDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">{formatDate(doc.documentDate)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">{doc.department}</td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.managerStatus} /></td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.hrStatus} /></td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.ceoStatus} /></td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <ApproverStatusCell status={doc.managerStatusDisplay ?? doc.managerStatus} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <ApproverStatusCell status={doc.hrStatusDisplay ?? doc.hrStatus} />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <ApproverStatusCell status={doc.ceoStatusDisplay ?? doc.ceoStatus} />
+                  </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-center">{doc.dueDate}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">{formatDate(doc.dueDate)}</td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="flex items-center justify-center space-x-4">
                       <Link
@@ -75,7 +101,11 @@ const UserListTable = ({
                         <EyeIcon className="w-5 h-5" />
                       </Link>
                       {role === 'user' && (
-                        <button onClick={() => onDelete(doc.id, doc.documentNumber)} className="text-gray-400 hover:text-red-600 focus:outline-none" title="ลบเอกสาร">
+                        <button
+                          onClick={() => onDelete(doc.id, doc.documentNumber)}
+                          className="text-gray-400 hover:text-red-600 focus:outline-none"
+                          title="ลบเอกสาร"
+                        >
                           <TrashIcon className="w-5 h-5" />
                         </button>
                       )}

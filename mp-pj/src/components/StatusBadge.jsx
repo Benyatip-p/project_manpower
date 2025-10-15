@@ -3,50 +3,55 @@
 import React from 'react';
 
 const StatusBadge = ({ status }) => {
+  // 1. จัดการกับค่าว่าง หรือค่าที่ไม่ต้องการแสดงผลก่อน
   if (!status || status === '-' || status === 'undefined' || status === undefined || status === 'NONE') {
     return <span className="text-gray-400">-</span>;
   }
 
-  // --- ทำให้ค่าที่รับมาเป็น String และตัดช่องว่างหัว-ท้ายออก ---
-  // นี่คือการป้องกันปัญหาข้อมูลมีช่องว่างแฝงอยู่ (เช่น " อนุมัติ ")
+  // 2. เตรียมข้อมูล โดยแปลงเป็น String และตัดช่องว่างที่อาจติดมาออก
   const trimmedStatus = String(status).trim(); 
 
   let badgeColor = '';
   let badgeText = trimmedStatus;
 
-  switch (trimmedStatus) { // <-- ใช้ตัวแปรที่ clean แล้วมาเช็ค
-    case 'ผ่านการอนุมัติ':
-    case 'อนุมัติ':
-    case 'Approved':
-    case 'APPROVED':
-      badgeColor = 'bg-green-100 text-green-800';
-      badgeText = 'อนุมัติ';
-      break;
+  // 3. กำหนดสีและข้อความตามสถานะ (Normalize ให้แสดงรูปแบบเดียวกันในตาราง)
+  const up = trimmedStatus.toUpperCase();
 
-    case 'รออนุมัติ':
-    case 'Pending':
-    case 'IN_PROGRESS':
-    case 'NONE':
-      badgeColor = 'bg-yellow-100 text-yellow-800';
-      badgeText = 'รออนุมัติ';
-      break;
+  const isRejected =
+    trimmedStatus === 'ไม่อนุมัติ' ||
+    up.includes('REJECT') ||
+    up === 'REJECTED' ||
+    up === 'DISAPPROVED';
 
-    case 'ไม่อนุมัติ':
-    case 'Rejected':
-    case 'REJECTED':
-      badgeColor = 'bg-red-100 text-red-800';
-      badgeText = 'ไม่อนุมัติ';
-      break;
+  // หมายเหตุ: MGR_APPROVED เป็นการอนุมัติบางส่วนของต้นสังกัด ยังถือเป็น "รอการอนุมัติ"
+  const isApproved =
+    trimmedStatus === 'อนุมัติ' ||
+    trimmedStatus === 'ผ่านการอนุมัติ' ||
+    (up.includes('APPROVED') && up !== 'MGR_APPROVED');
 
-    case 'SUBMITTED':
-      badgeColor = 'bg-blue-100 text-blue-800';
-      badgeText = 'ส่งแล้ว';
-      break;
+  const isPending =
+    trimmedStatus === 'รออนุมัติ' ||
+    trimmedStatus === 'รอการอนุมัติ' ||
+    up === 'PENDING' ||
+    up === 'IN_PROGRESS' ||
+    up === 'SUBMITTED' ||
+    up === 'MGR_APPROVED' ||
+    up === 'RETURNED' ||
+    up.includes('WAITING');
 
-    default:
-      badgeColor = 'bg-gray-100 text-gray-800';
-      badgeText = trimmedStatus;
-      break;
+  if (isRejected) {
+    badgeColor = 'bg-red-100 text-red-800';
+    badgeText = 'ไม่อนุมัติ';
+  } else if (isApproved) {
+    badgeColor = 'bg-green-100 text-green-800';
+    badgeText = 'อนุมัติ';
+  } else if (isPending) {
+    badgeColor = 'bg-yellow-100 text-yellow-800';
+    badgeText = 'รอการอนุมัติ';
+  } else {
+    // ค่าที่ไม่รู้จัก แสดงตามค่าเดิม (โทนเทา)
+    badgeColor = 'bg-gray-100 text-gray-800';
+    badgeText = trimmedStatus;
   }
 
   return (

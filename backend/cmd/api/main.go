@@ -44,7 +44,9 @@ func main() {
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
 	config.AllowCredentials = true
-	config.AddAllowHeaders("Authorization")
+	// Allow Authorization for JWT and standard JSON headers/methods for admin edits (PUT/PATCH/DELETE)
+	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"}
+	config.AllowHeaders = []string{"Authorization", "Content-Type", "Accept", "Origin"}
 
 	router.Use(cors.New(config))
 

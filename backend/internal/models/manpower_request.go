@@ -53,7 +53,12 @@ type ManpowerRequest struct {
 
 	DisplayStatus string `json:"display_status"`
 
-	TargetHireDate      *time.Time `json:"target_hire_date" db:"target_hire_date"` 
-	CreatedAt           time.Time  `json:"created_at" db:"created_at"` 
+	TargetHireDate      *time.Time `json:"target_hire_date" db:"target_hire_date"`
+	CreatedAt           time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt           time.Time  `json:"updated_at" db:"updated_at"`
+
+	// Normalized display statuses for table rendering (Thai, consistent format)
+	ManagerStatusDisplay string `json:"manager_status_display"`
+	HRStatusDisplay      string `json:"hr_status_display"`
+	CeoStatusDisplay     string `json:"overall_status_display"`
 }

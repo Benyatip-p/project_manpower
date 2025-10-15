@@ -15,8 +15,8 @@ function UserStatusDropdown({ value, onChange }) {
   // --- 2. เอา state 'selectedOption' ออกไป เพราะจะใช้ 'value' จาก props แทน ---
   // const [selectedOption, setSelectedOption] = useState(null);
   
-  // เพิ่มตัวเลือก 'ไม่อนุมัติ' และ 'สถานะทั้งหมด'
-  const options = ['ผ่านการอนุมัติ', 'รออนุมัติ', 'ไม่อนุมัติ'];
+  // ตัวเลือกสถานะสำหรับ Filter
+  const options = ['อนุมัติ', 'ผ่านการอนุมัติ', 'รอการอนุมัติ', 'ไม่อนุมัติ'];
 
   // --- 3. สร้างฟังก์ชัน handleSelect เพื่อเรียก onChange ที่ได้รับมา ---
   const handleSelect = (option) => {

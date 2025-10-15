@@ -101,8 +101,34 @@ LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 	if role == "Admin" {
 		query = baseSelect + " ORDER BY mr.created_at DESC"
 	} else if role == "Approve" {
-		query = baseSelect + " WHERE mr.requesting_dept_id = $1 AND mr.overall_status IN ('IN_PROCESS', 'IN_PROGRESS') ORDER BY mr.created_at DESC"
-		args = append(args, deptID)
+		// Approver visibility:
+		// - Non-HR approvers: see requests in their own department
+		// - HR approvers: see non-HR department requests only after origin lane completed (DIR_APPROVED) or already in HR waiting states
+		// - Management (ฝ่ายบริหาร) approvers: see final statuses for awareness
+		var hrDeptID int
+		if err := database.DB.QueryRow(`SELECT dept_id FROM departments WHERE dept_name=$1`, "ฝ่ายทรัพยากรบุคคล").Scan(&hrDeptID); err != nil {
+			log.Println("failed to resolve HR dept id:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to resolve HR dept"})
+			return
+		}
+		var mgmtDeptID int
+		if err := database.DB.QueryRow(`SELECT dept_id FROM departments WHERE dept_name=$1`, "ฝ่ายบริหาร").Scan(&mgmtDeptID); err != nil {
+			// not fatal; management visibility just won't be applied
+			log.Println("warn: failed to resolve Management dept id:", err)
+		}
+
+		if deptID == hrDeptID {
+			// HR: only see other departments' requests when ต้นสังกัด completed or already in HR waiting states
+			query = baseSelect + " WHERE mr.requesting_dept_id <> $1 AND (mr.origin_status = 'DIR_APPROVED' OR mr.hr_status IN ('WAITING_RECRUITER','WAITING_HR_MANAGER','WAITING_HR_DIRECTOR')) ORDER BY mr.created_at DESC"
+			args = append(args, hrDeptID)
+		} else if mgmtDeptID != 0 && deptID == mgmtDeptID {
+			// ฝ่ายบริหาร: see final statuses system-wide (read-only awareness)
+			query = baseSelect + " WHERE mr.overall_status IN ('APPROVED','REJECTED') ORDER BY mr.created_at DESC"
+		} else {
+			// Non-HR approvers: scope to own department and active pipeline
+			query = baseSelect + " WHERE mr.requesting_dept_id = $1 AND mr.overall_status IN ('IN_PROGRESS','WAITING_RECRUITER','WAITING_HR_MANAGER','WAITING_HR_DIRECTOR') ORDER BY mr.created_at DESC"
+			args = append(args, deptID)
+		}
 	} else {
 		// ผู้ใช้ทั่วไป: เห็นเฉพาะคำขอที่ตัวเองส่ง หรืออยู่ในแผนกเดียวกัน
 		if secID > 0 {
@@ -241,7 +267,7 @@ func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
         $6,$7,$8,
         $9,$10,
         $11,$12,$13,$14,$15,$16,
-        $17,'SUBMITTED','NONE','IN_PROGRESS',
+        $17,'SUBMITTED','IN_PROGRESS','IN_PROGRESS',
         $18,NOW(),NOW()
       )
       RETURNING request_id, doc_number, created_at
@@ -286,7 +312,7 @@ func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
         "created_at":  createdAt,
         "created_by":  empID,
         "origin_status": "SUBMITTED",
-        "hr_status":     "NONE",
+        "hr_status":     "IN_PROGRESS",
         "overall_status":"IN_PROGRESS",
     })
 }

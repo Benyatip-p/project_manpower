@@ -227,412 +227,619 @@ VALUES
  (SELECT section_id FROM sections WHERE section_name='แผนกไอที'),
  3);
 
--- ========== 1 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110012', 'E101', TO_DATE('23/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
-  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id  FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id  FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id  FROM request_reasons  WHERE rr_name='แทนตำแหน่งที่ว่าง'),
-  'ช่างเชื่อม', 1,
-  22, 45,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='3-5 ปี'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปวส.'),
-  'มีความสามารถในการเชื่อม TIG, MIG และสามารถอ่านแบบได้เป็นอย่างดี',
-  'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
-);
+-- -- ========== 1 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110012', 'E101', TO_DATE('23/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
+--   (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id  FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id  FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id  FROM request_reasons  WHERE rr_name='แทนตำแหน่งที่ว่าง'),
+--   'ช่างเชื่อม', 1,
+--   22, 45,
+--   (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='3-5 ปี'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปวส.'),
+--   'มีความสามารถในการเชื่อม TIG, MIG และสามารถอ่านแบบได้เป็นอย่างดี',
+--   'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
+-- );
 
--- ========== 2 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110013', 'E102', TO_DATE('24/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
-  (SELECT pos_id FROM positions  WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id  FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id  FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id  FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'เจ้าหน้าที่การตลาดดิจิทัล', 1,
-  25, 35,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name IN ('3-5 ปี','1-2 ปี') ORDER BY exp_id LIMIT 1),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'มีความเชี่ยวชาญ Google Ads, Facebook Ads และเครื่องมือ SEO',
-  'DIR_APPROVED', 'HR_INTAKE', 'IN_PROGRESS'
-);
+-- -- ========== 2 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110013', 'E102', TO_DATE('24/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
+--   (SELECT pos_id FROM positions  WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id  FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id  FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id  FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'เจ้าหน้าที่การตลาดดิจิทัล', 1,
+--   25, 35,
+--   (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name IN ('3-5 ปี','1-2 ปี') ORDER BY exp_id LIMIT 1),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'มีความเชี่ยวชาญ Google Ads, Facebook Ads และเครื่องมือ SEO',
+--   'DIR_APPROVED', 'HR_INTAKE', 'IN_PROGRESS'
+-- );
 
--- ========== 3 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110014', 'E103', TO_DATE('25/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้าง 6 เดือน','สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'ผู้ช่วยนักบัญชี (ชั่วคราว)', 1,
-  21, 30,
-  (SELECT gender_id FROM genders WHERE gender_name='หญิง'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='ไม่มีประสบการณ์'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'สามารถใช้โปรแกรม Express ได้จะพิจารณาเป็นพิเศษ',
-  'MGR_REJECTED', 'NONE', 'REJECTED'
-);
+-- -- ========== 3 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110014', 'E103', TO_DATE('25/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้าง 6 เดือน','สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'ผู้ช่วยนักบัญชี (ชั่วคราว)', 1,
+--   21, 30,
+--   (SELECT gender_id FROM genders WHERE gender_name='หญิง'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='ไม่มีประสบการณ์'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'สามารถใช้โปรแกรม Express ได้จะพิจารณาเป็นพิเศษ',
+--   'MGR_REJECTED', 'NONE', 'REJECTED'
+-- );
 
--- ========== 4 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110015', 'E103', TO_DATE('26/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='แทนตำแหน่งที่ว่าง'),
-  'เจ้าหน้าที่สรรหาว่าจ้าง', 1,
-  24, 35,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'มีทักษะการสื่อสารและมนุษยสัมพันธ์ดีเยี่ยม',
-  'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
-);
+-- -- ========== 4 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110015', 'E103', TO_DATE('26/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='แทนตำแหน่งที่ว่าง'),
+--   'เจ้าหน้าที่สรรหาว่าจ้าง', 1,
+--   24, 35,
+--   (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'มีทักษะการสื่อสารและมนุษยสัมพันธ์ดีเยี่ยม',
+--   'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
+-- );
 
--- ========== 5 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110016', 'E101', TO_DATE('27/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายเทคโนโลยีสารสนเทศ'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกไอที'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'IT Support', 1,
-  22, 35,
-  (SELECT gender_id FROM genders WHERE gender_name='ชาย'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='1-2 ปี'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'แก้ไขปัญหา Hardware/Software/Network พื้นฐานได้',
-  'DIR_APPROVED', 'HR_INTAKE', 'IN_PROGRESS'
-);
+-- -- ========== 5 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110016', 'E101', TO_DATE('27/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายเทคโนโลยีสารสนเทศ'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกไอที'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'IT Support', 1,
+--   22, 35,
+--   (SELECT gender_id FROM genders WHERE gender_name='ชาย'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='1-2 ปี'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'แก้ไขปัญหา Hardware/Software/Network พื้นฐานได้',
+--   'DIR_APPROVED', 'HR_INTAKE', 'IN_PROGRESS'
+-- );
 
--- ========== 6 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110017', 'E105', TO_DATE('28/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายจัดซื้อ'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกจัดซื้อ'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'พนักงานจัดซื้อ', 1,
-  25, 40,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'ทักษะการเจรจาต่อรองดี',
-  'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
-);
+-- -- ========== 6 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110017', 'E105', TO_DATE('28/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายจัดซื้อ'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกจัดซื้อ'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'พนักงานจัดซื้อ', 1,
+--   25, 40,
+--   (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'ทักษะการเจรจาต่อรองดี',
+--   'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
+-- );
 
--- ========== 7 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110018', 'E102', TO_DATE('29/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'พนักงานฝ่ายผลิต', 1,
-  18, 40,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='ไม่มีประสบการณ์'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ม.3'),
-  'ขยัน อดทน ทำงานเป็นกะได้',
-  'DIR_APPROVED', 'HR_MANAGER_APPROVED', 'WAITING_HR_DIRECTOR'
-);
+-- -- ========== 7 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110018', 'E102', TO_DATE('29/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'พนักงานฝ่ายผลิต', 1,
+--   18, 40,
+--   (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='ไม่มีประสบการณ์'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ม.3'),
+--   'ขยัน อดทน ทำงานเป็นกะได้',
+--   'DIR_APPROVED', 'HR_MANAGER_APPROVED', 'WAITING_HR_DIRECTOR'
+-- );
 
--- ========== 8 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110019', 'E104', TO_DATE('30/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายจัดซื้อ'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกจัดซื้อ'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้าง 1 ปี','สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'พนักงานคลังสินค้า', 1,
-  20, 45,
-  (SELECT gender_id FROM genders WHERE gender_name='ชาย'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='1-2 ปี'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ม.6'),
-  'ขับโฟล์คลิฟท์ได้ (มีใบรับรองพิจารณาพิเศษ)',
-  'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
-);
+-- -- ========== 8 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110019', 'E104', TO_DATE('30/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายจัดซื้อ'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกจัดซื้อ'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้าง 1 ปี','สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'พนักงานคลังสินค้า', 1,
+--   20, 45,
+--   (SELECT gender_id FROM genders WHERE gender_name='ชาย'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='1-2 ปี'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ม.6'),
+--   'ขับโฟล์คลิฟท์ได้ (มีใบรับรองพิจารณาพิเศษ)',
+--   'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
+-- );
 
--- ========== 9 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110020', 'E105', TO_DATE('01/12/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='แทนตำแหน่งที่ว่าง'),
-  'ช่างซ่อมบำรุง', 1,
-  22, 50,
-  (SELECT gender_id FROM genders WHERE gender_name='ชาย'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='3-5 ปี'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปวส.'),
-  'ซ่อมบำรุงเครื่องจักรในโรงงานอุตสาหกรรม',
-  'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
-);
+-- -- ========== 9 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110020', 'E105', TO_DATE('01/12/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='แทนตำแหน่งที่ว่าง'),
+--   'ช่างซ่อมบำรุง', 1,
+--   22, 50,
+--   (SELECT gender_id FROM genders WHERE gender_name='ชาย'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='3-5 ปี'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปวส.'),
+--   'ซ่อมบำรุงเครื่องจักรในโรงงานอุตสาหกรรม',
+--   'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
+-- );
 
--- ========== 10 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110021', 'E101', TO_DATE('02/12/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'นักศึกษาฝึกงานการตลาด', 1,
-  18, 25,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='ไม่มีประสบการณ์'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'สนใจการตลาดออนไลน์และคิดสร้างสรรค์',
-  'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
-);
+-- -- ========== 10 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110021', 'E101', TO_DATE('02/12/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='ชั่วคราว'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างแบบมีระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'นักศึกษาฝึกงานการตลาด', 1,
+--   18, 25,
+--   (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='ไม่มีประสบการณ์'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'สนใจการตลาดออนไลน์และคิดสร้างสรรค์',
+--   'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
+-- );
 
--- ========== 11 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110022', 'E102', TO_DATE('03/12/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'เจ้าหน้าที่สรรหาอาวุโส', 1,
-  28, 40,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='5-10 ปี'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'มีประสบการณ์สรรหาตำแหน่งระดับผู้จัดการ',
-  'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
-);
+-- -- ========== 11 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110022', 'E102', TO_DATE('03/12/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'เจ้าหน้าที่สรรหาอาวุโส', 1,
+--   28, 40,
+--   (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='5-10 ปี'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'มีประสบการณ์สรรหาตำแหน่งระดับผู้จัดการ',
+--   'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
+-- );
 
--- ========== 12 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110023', 'E102', TO_DATE('04/12/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='แทนตำแหน่งที่ว่าง'),
-  'นักบัญชีอาวุโส', 1,
-  30, 45,
-  (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name='5-10 ปี'),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'ปิดงบและภาษีได้ดี',
-  'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
-);
+-- -- ========== 12 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110023', 'E102', TO_DATE('04/12/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='แทนตำแหน่งที่ว่าง'),
+--   'นักบัญชีอาวุโส', 1,
+--   30, 45,
+--   (SELECT gender_id FROM genders WHERE gender_name='ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name='5-10 ปี'),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'ปิดงบและภาษีได้ดี',
+--   'DIR_APPROVED', 'HR_DIRECTOR_APPROVED', 'APPROVED'
+-- );
 
--- ========== 13 ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110024', 'E103', TO_DATE('24/11/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
-  (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
-  (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
-  'พนักงานขาย', 1,
-  23, 38,
-  (SELECT gender_id FROM genders WHERE gender_name IN ('ไม่จำกัด') LIMIT 1),
-  (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
-  (SELECT exp_id    FROM experiences WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
-  (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
-  'มีรถยนต์ส่วนตัว เดินทางต่างจังหวัดได้',
-  'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
-);
+-- -- ========== 13 ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110024', 'E103', TO_DATE('24/11/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name='พนักงานทั่วไป'),
+--   (SELECT et_id   FROM employment_types WHERE et_name='รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name='เพิ่มอัตรากำลังพล'),
+--   'พนักงานขาย', 1,
+--   23, 38,
+--   (SELECT gender_id FROM genders WHERE gender_name IN ('ไม่จำกัด') LIMIT 1),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name='ไทย'),
+--   (SELECT exp_id    FROM experiences WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name='ปริญญาตรี'),
+--   'มีรถยนต์ส่วนตัว เดินทางต่างจังหวัดได้',
+--   'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
+-- );
 
--- ========== 14 (เดิมระบุ E002 แก้เป็น E102 ให้ไม่ชน FK) ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110025', 'E102', TO_DATE('05/12/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name = 'ฝ่ายการตลาด'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
-  (SELECT pos_id  FROM positions   WHERE pos_name = 'นักการตลาด'),
-  (SELECT et_id   FROM employment_types WHERE et_name = 'รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name = 'เพิ่มอัตรากำลังพล'),
-  'เจ้าหน้าที่การตลาดดิจิทัล (Junior)', 1,
-  22, 32,
-  (SELECT gender_id FROM genders WHERE gender_name = 'ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name = 'ไทย'),
-  (SELECT exp_id    FROM experiences   WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
-  (SELECT edu_id    FROM education_levels WHERE edu_name = 'ปริญญาตรี'),
-  'วางแผน/ยิงโฆษณา Google & Facebook, พื้นฐาน SEO/GA4',
-  'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
-);
+-- -- ========== 14 (เดิมระบุ E002 แก้เป็น E102 ให้ไม่ชน FK) ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110025', 'E102', TO_DATE('05/12/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name = 'ฝ่ายการตลาด'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name = 'นักการตลาด'),
+--   (SELECT et_id   FROM employment_types WHERE et_name = 'รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name = 'เพิ่มอัตรากำลังพล'),
+--   'เจ้าหน้าที่การตลาดดิจิทัล (Junior)', 1,
+--   22, 32,
+--   (SELECT gender_id FROM genders WHERE gender_name = 'ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name = 'ไทย'),
+--   (SELECT exp_id    FROM experiences   WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name = 'ปริญญาตรี'),
+--   'วางแผน/ยิงโฆษณา Google & Facebook, พื้นฐาน SEO/GA4',
+--   'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
+-- );
 
--- ========== 15 (เดิมระบุ E002 แก้เป็น E102 ให้ไม่ชน FK) ==========
-INSERT INTO manpower_requests (
-  doc_number, employee_id, doc_date,
-  requesting_dept_id, requesting_section_id, requesting_pos_id,
-  employment_type_id, contract_type_id, reason_id,
-  required_position_name, num_required,
-  min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
-  special_qualifications,
-  origin_status, hr_status, overall_status
-) VALUES (
-  'PQ24110026', 'E102', TO_DATE('06/12/2024','DD/MM/YYYY'),
-  (SELECT dept_id FROM departments WHERE dept_name = 'ฝ่ายการตลาด'),
-  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
-  (SELECT pos_id  FROM positions   WHERE pos_name = 'นักการตลาด'),
-  (SELECT et_id   FROM employment_types WHERE et_name = 'รายเดือน'),
-  (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
-  (SELECT rr_id   FROM request_reasons  WHERE rr_name = 'แทนตำแหน่งที่ว่าง'),
-  'นักวิเคราะห์การตลาด (Marketing Analyst)', 1,
-  23, 35,
-  (SELECT gender_id FROM genders WHERE gender_name = 'ไม่จำกัด'),
-  (SELECT nat_id    FROM nationalities WHERE nat_name = 'ไทย'),
-  (SELECT exp_id    FROM experiences   WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
-  (SELECT edu_id    FROM education_levels WHERE edu_name = 'ปริญญาตรี'),
-  'ใช้ Excel/SQL ได้ดี, รู้จัก Looker/Power BI จะพิจารณาเป็นพิเศษ',
-  'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
-);
+-- -- ========== 15 (เดิมระบุ E002 แก้เป็น E102 ให้ไม่ชน FK) ==========
+-- INSERT INTO manpower_requests (
+--   doc_number, employee_id, doc_date,
+--   requesting_dept_id, requesting_section_id, requesting_pos_id,
+--   employment_type_id, contract_type_id, reason_id,
+--   required_position_name, num_required,
+--   min_age, max_age, gender_id, nationality_id, experience_id, education_level_id,
+--   special_qualifications,
+--   origin_status, hr_status, overall_status
+-- ) VALUES (
+--   'PQ24110026', 'E102', TO_DATE('06/12/2024','DD/MM/YYYY'),
+--   (SELECT dept_id FROM departments WHERE dept_name = 'ฝ่ายการตลาด'),
+--   (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
+--   (SELECT pos_id  FROM positions   WHERE pos_name = 'นักการตลาด'),
+--   (SELECT et_id   FROM employment_types WHERE et_name = 'รายเดือน'),
+--   (SELECT ct_id   FROM contract_types   WHERE ct_name IN ('สัญญาจ้างไม่มีกำหนด','สัญญาไม่มีกำหนดระยะเวลาเวลา','สัญญาไม่มีกำหนดระยะเวลา') ORDER BY ct_id LIMIT 1),
+--   (SELECT rr_id   FROM request_reasons  WHERE rr_name = 'แทนตำแหน่งที่ว่าง'),
+--   'นักวิเคราะห์การตลาด (Marketing Analyst)', 1,
+--   23, 35,
+--   (SELECT gender_id FROM genders WHERE gender_name = 'ไม่จำกัด'),
+--   (SELECT nat_id    FROM nationalities WHERE nat_name = 'ไทย'),
+--   (SELECT exp_id    FROM experiences   WHERE exp_name IN ('1-2 ปี','3-5 ปี') ORDER BY exp_id LIMIT 1),
+--   (SELECT edu_id    FROM education_levels WHERE edu_name = 'ปริญญาตรี'),
+--   'ใช้ Excel/SQL ได้ดี, รู้จัก Looker/Power BI จะพิจารณาเป็นพิเศษ',
+--   'SUBMITTED', 'HR_INTAKE', 'IN_PROGRESS'
+-- );
 
 UPDATE manpower_requests
 SET hr_status = 'WAITING_RECRUITER'
 WHERE hr_status = 'HR_INTAKE'
   AND origin_status = 'DIR_APPROVED';
+-- =========================
+-- APPROVAL WORKFLOW SCHEMA
+-- =========================
+
+-- Master approval workflow definitions
+CREATE TABLE IF NOT EXISTS approval_workflows (
+  workflow_id   SERIAL PRIMARY KEY,
+  workflow_code VARCHAR(50) UNIQUE NOT NULL,
+  workflow_name VARCHAR(100) NOT NULL,
+  description   TEXT,
+  is_active     BOOLEAN DEFAULT TRUE,
+  created_at    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Steps that belong to a workflow
+-- lane: 'ORIGIN' (ต้นสังกัด) or 'HR' (ทรัพยากรบุคคล)
+-- required_pos_name must match positions.pos_name (e.g. 'ผู้จัดการ', 'ผู้อำนวยการฝ่าย', 'เจ้าหน้าที่ HR')
+CREATE TABLE IF NOT EXISTS approval_workflow_steps (
+  step_id           SERIAL PRIMARY KEY,
+  workflow_id       INT NOT NULL REFERENCES approval_workflows(workflow_id) ON DELETE CASCADE,
+  step_order        SMALLINT NOT NULL,
+  step_code         VARCHAR(50) NOT NULL,
+  step_name         VARCHAR(100) NOT NULL,
+  lane              VARCHAR(20) NOT NULL,
+  required_pos_name VARCHAR(100) NOT NULL,
+  UNIQUE(workflow_id, step_order),
+  UNIQUE(workflow_id, step_code)
+);
+
+-- Map departments to a workflow (current active one)
+CREATE TABLE IF NOT EXISTS dept_workflow_map (
+  map_id        SERIAL PRIMARY KEY,
+  dept_id       INT NOT NULL REFERENCES departments(dept_id) ON DELETE CASCADE,
+  workflow_id   INT NOT NULL REFERENCES approval_workflows(workflow_id) ON DELETE CASCADE,
+  effective_from DATE NOT NULL DEFAULT CURRENT_DATE,
+  effective_to   DATE,
+  is_active      BOOLEAN DEFAULT TRUE
+);
+
+CREATE INDEX IF NOT EXISTS idx_workflow_steps_workflow ON approval_workflow_steps(workflow_id);
+CREATE INDEX IF NOT EXISTS idx_dept_workflow_map_dept ON dept_workflow_map(dept_id);
+CREATE INDEX IF NOT EXISTS idx_dept_workflow_map_active ON dept_workflow_map(is_active);
+
+-- =========================
+-- SEED APPROVAL WORKFLOWS
+-- =========================
+
+-- Default flow for non-HR originating departments:
+-- 1) ผู้จัดการ (ต้นสังกัด) -> 2) ผู้อำนวยการฝ่าย (ต้นสังกัด) ->
+-- 3) เจ้าหน้าที่ HR (สรรหา) -> 4) ผู้จัดการ HR -> 5) ผู้อำนวยการฝ่าย HR
+INSERT INTO approval_workflows (workflow_code, workflow_name, description, is_active)
+VALUES
+  ('WF_DEFAULT_NON_HR', 'Default Non-HR Request', 'Mgr -> Dir -> HR Recruiter -> HR Manager -> HR Director', TRUE)
+ON CONFLICT (workflow_code) DO NOTHING;
+
+-- Flow for HR department (originating requests inside HR):
+-- 1) เจ้าหน้าที่ HR (สรรหา) -> 2) ผู้จัดการ HR -> 3) ผู้อำนวยการฝ่าย HR
+INSERT INTO approval_workflows (workflow_code, workflow_name, description, is_active)
+VALUES
+  ('WF_HR_DEPT', 'HR Department Request', 'HR Recruiter -> HR Manager -> HR Director', TRUE)
+ON CONFLICT (workflow_code) DO NOTHING;
+
+-- =========================
+-- SEED STEPS FOR WORKFLOWS
+-- =========================
+
+-- Steps for WF_DEFAULT_NON_HR
+WITH wf AS (
+  SELECT workflow_id FROM approval_workflows WHERE workflow_code = 'WF_DEFAULT_NON_HR'
+)
+INSERT INTO approval_workflow_steps (workflow_id, step_order, step_code, step_name, lane, required_pos_name)
+SELECT wf.workflow_id, s.step_order, s.step_code, s.step_name, s.lane, s.required_pos_name
+FROM wf,
+( VALUES
+  (1, 'ORIGIN_MGR', 'ผู้จัดการ (ต้นสังกัด)',          'ORIGIN', 'ผู้จัดการ'),
+  (2, 'ORIGIN_DIR', 'ผู้อำนวยการฝ่าย (ต้นสังกัด)',    'ORIGIN', 'ผู้อำนวยการฝ่าย'),
+  (3, 'HR_RECRUITER','เจ้าหน้าที่ HR (สรรหา)',         'HR',     'เจ้าหน้าที่ HR'),
+  (4, 'HR_MANAGER',  'ผู้จัดการ HR',                   'HR',     'ผู้จัดการ'),
+  (5, 'HR_DIRECTOR', 'ผู้อำนวยการฝ่าย HR',            'HR',     'ผู้อำนวยการฝ่าย')
+) AS s(step_order, step_code, step_name, lane, required_pos_name)
+ON CONFLICT (workflow_id, step_code) DO NOTHING;
+
+-- Steps for WF_HR_DEPT
+WITH wf AS (
+  SELECT workflow_id FROM approval_workflows WHERE workflow_code = 'WF_HR_DEPT'
+)
+INSERT INTO approval_workflow_steps (workflow_id, step_order, step_code, step_name, lane, required_pos_name)
+SELECT wf.workflow_id, s.step_order, s.step_code, s.step_name, s.lane, s.required_pos_name
+FROM wf,
+( VALUES
+  (1, 'HR_RECRUITER','เจ้าหน้าที่ HR (สรรหา)', 'HR', 'เจ้าหน้าที่ HR'),
+  (2, 'HR_MANAGER',  'ผู้จัดการ HR',           'HR', 'ผู้จัดการ'),
+  (3, 'HR_DIRECTOR', 'ผู้อำนวยการฝ่าย HR',    'HR', 'ผู้อำนวยการฝ่าย')
+) AS s(step_order, step_code, step_name, lane, required_pos_name)
+ON CONFLICT (workflow_id, step_code) DO NOTHING;
+
+-- =========================
+-- MAP DEPARTMENTS TO WORKFLOWS
+-- =========================
+
+-- Map HR department to WF_HR_DEPT
+INSERT INTO dept_workflow_map (dept_id, workflow_id)
+SELECT d.dept_id, w.workflow_id
+FROM departments d
+JOIN approval_workflows w ON w.workflow_code = 'WF_HR_DEPT'
+WHERE d.dept_name = 'ฝ่ายทรัพยากรบุคคล'
+  AND NOT EXISTS (
+    SELECT 1 FROM dept_workflow_map m
+    WHERE m.dept_id = d.dept_id AND m.workflow_id = w.workflow_id AND m.is_active = TRUE
+  );
+
+-- Map all other departments to WF_DEFAULT_NON_HR
+INSERT INTO dept_workflow_map (dept_id, workflow_id)
+SELECT d.dept_id, w.workflow_id
+FROM departments d
+JOIN approval_workflows w ON w.workflow_code = 'WF_DEFAULT_NON_HR'
+WHERE d.dept_name <> 'ฝ่ายทรัพยากรบุคคล'
+  AND NOT EXISTS (
+    SELECT 1 FROM dept_workflow_map m
+    WHERE m.dept_id = d.dept_id AND m.workflow_id = w.workflow_id AND m.is_active = TRUE
+  );
+
+-- =========================
+-- NOTES
+-- =========================
+-- 1) This schema allows per-department workflows without changing code.
+-- 2) required_pos_name ties to positions.pos_name, and lane differentiates
+--    whether the step actor is in the requesting department (ORIGIN) or HR.
+-- 3) Future: you can add workflow versions by inserting new approval_workflows
+--    and updating dept_workflow_map with new effective_from.
+-- =========================
+-- WORKFLOW: Replacement Position Request Process
+-- =========================
+-- This workflow models:
+-- Section 1 (Requesting Department):
+--   Initiation (form submission by immediate supervisor) -> Approval L1 (Dept Manager) -> Approval L2 (Division Director) -> HR Handover
+-- Section 2 (HR Department):
+--   Initial HR Review (Recruitment Officer) -> Approval L3 (HR Manager) -> Final Approval (HR Director)
+--
+-- Note: "Initiation" is represented by request submission (approval_history action='SUBMIT', step=0) and not as an approval step.
+
+-- Create/Upsert workflow definition
+INSERT INTO approval_workflows (workflow_code, workflow_name, description, is_active)
+VALUES
+  ('WF_REPLACEMENT_REQUEST',
+   'Replacement Position Request Process',
+   'Dept: L1 Manager -> L2 Director -> HR handover; HR: Recruiter -> HR Manager -> HR Director',
+   TRUE)
+ON CONFLICT (workflow_code)
+DO UPDATE SET
+  workflow_name = EXCLUDED.workflow_name,
+  description   = EXCLUDED.description,
+  is_active     = EXCLUDED.is_active;
+
+-- Steps for WF_REPLACEMENT_REQUEST
+WITH wf AS (
+  SELECT workflow_id FROM approval_workflows WHERE workflow_code = 'WF_REPLACEMENT_REQUEST'
+)
+INSERT INTO approval_workflow_steps (workflow_id, step_order, step_code, step_name, lane, required_pos_name)
+SELECT wf.workflow_id, s.step_order, s.step_code, s.step_name, s.lane, s.required_pos_name
+FROM wf,
+( VALUES
+  -- Section 1: Requesting Department Process
+  (1, 'ORIGIN_MGR_L1',      'Approval Level 1: Department Manager', 'ORIGIN', 'ผู้จัดการ'),
+  (2, 'ORIGIN_DIR_L2',      'Approval Level 2: Division Director',  'ORIGIN', 'ผู้อำนวยการฝ่าย'),
+  -- Section 2: HR Department Process
+  (3, 'HR_RECRUITER',       'Initial HR Review: Recruitment Officer','HR',     'เจ้าหน้าที่ HR'),
+  (4, 'HR_MANAGER_L3',      'Approval Level 3: HR Manager',         'HR',     'ผู้จัดการ'),
+  (5, 'HR_DIRECTOR_FINAL',  'Final Approval: HR Director',           'HR',     'ผู้อำนวยการฝ่าย')
+) AS s(step_order, step_code, step_name, lane, required_pos_name)
+ON CONFLICT (workflow_id, step_code) DO NOTHING;
+
+-- Remap departments to use this workflow for Replacement Position Requests
+-- Deactivate previous active mappings for all NON-HR departments
+UPDATE dept_workflow_map
+SET is_active = FALSE,
+    effective_to = CURRENT_DATE
+WHERE is_active = TRUE
+  AND dept_id IN (SELECT dept_id FROM departments WHERE dept_name &lt;&gt; 'ฝ่ายทรัพยากรบุคคล');
+
+-- Activate WF_REPLACEMENT_REQUEST for all NON-HR departments
+INSERT INTO dept_workflow_map (dept_id, workflow_id, effective_from, is_active)
+SELECT d.dept_id, w.workflow_id, CURRENT_DATE, TRUE
+FROM departments d
+CROSS JOIN (SELECT workflow_id FROM approval_workflows WHERE workflow_code = 'WF_REPLACEMENT_REQUEST') w
+WHERE d.dept_name &lt;&gt; 'ฝ่ายทรัพยากรบุคคล'
+  AND NOT EXISTS (
+    SELECT 1 FROM dept_workflow_map m
+    WHERE m.dept_id = d.dept_id
+      AND m.workflow_id = w.workflow_id
+      AND m.is_active = TRUE
+  );
+
+-- Ensure HR department remains mapped to its HR-specific workflow (WF_HR_DEPT)
+INSERT INTO dept_workflow_map (dept_id, workflow_id, effective_from, is_active)
+SELECT d.dept_id, w.workflow_id, CURRENT_DATE, TRUE
+FROM departments d
+JOIN approval_workflows w ON w.workflow_code = 'WF_HR_DEPT'
+WHERE d.dept_name = 'ฝ่ายทรัพยากรบุคคล'
+  AND NOT EXISTS (
+    SELECT 1 FROM dept_workflow_map m
+    WHERE m.dept_id = d.dept_id
+      AND m.workflow_id = w.workflow_id
+      AND m.is_active = TRUE
+  );
+
+-- End of WF_REPLACEMENT_REQUEST seed

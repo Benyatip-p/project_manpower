@@ -4,6 +4,19 @@ import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from '@heroicons/react/sol
 function UserRowmanage({ user, onEdit, onDelete }) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  const handleTogglePassword = () => {
+    if (isPasswordVisible) {
+      setIsPasswordVisible(false);
+      return;
+    }
+    const code = window.prompt('Enter admin code to view password');
+    if (code === 'imadmin') {
+      setIsPasswordVisible(true);
+    } else if (code !== null) {
+      window.alert('Incorrect code');
+    }
+  };
+
   return (
     <tr className="bg-white hover:bg-gray-50 transition-colors">
       <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">
@@ -32,8 +45,8 @@ function UserRowmanage({ user, onEdit, onDelete }) {
           <span className="font-mono">
             {isPasswordVisible ? user.password : '•••••••'}
           </span>
-          <button 
-            onClick={() => setIsPasswordVisible(!isPasswordVisible)} 
+          <button
+            onClick={handleTogglePassword}
             className="text-gray-400 hover:text-blue-600 focus:outline-none transition-colors"
             title={isPasswordVisible ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
             type="button"

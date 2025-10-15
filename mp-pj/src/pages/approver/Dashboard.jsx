@@ -1,21 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
-  PieChart, Pie, Cell 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell
 } from 'recharts';
 
 // Import a CSS file for styling
 import './Dashboard.css';
-import { generateDashboardData } from '../../data/mockData';
 
+const API_BASE_URL = 'http://localhost:8080/api';
 
-const fetchDashboardData = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const dashboardData = generateDashboardData();
-      resolve(dashboardData);
-    }, 1500); 
+const fetchDashboardData = async () => {
+  const token = localStorage.getItem('jwt_token');
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/dashboard/overview`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
   });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch dashboard data');
+  }
+
+  const data = await response.json();
+  return data;
 };
 
 // --- Components ย่อยๆ สำหรับแสดงผลสถานะ ---
@@ -38,6 +51,24 @@ const ErrorMessage = ({ message }) => (
 // สร้างตัวแปรเก็บสีสำหรับ Pie Chart
 const PIE_CHART_COLORS = ['#9894e3ff', '#f1a942ff'];
 
+const calculateHireRate = (departments) => {
+  const totalHires = departments.reduce((sum, dept) => sum + dept.new_hires, 0);
+  const totalResigns = departments.reduce((sum, dept) => sum + dept.resigns, 0);
+  const totalEmployees = totalHires + totalResigns;
+  if (totalEmployees === 0) return '0%';
+  const rate = (totalHires / totalEmployees) * 100;
+  return `${rate.toFixed(1)}%`;
+};
+
+const calculateResignationRate = (departments) => {
+  const totalResigns = departments.reduce((sum, dept) => sum + dept.resigns, 0);
+  const totalHires = departments.reduce((sum, dept) => sum + dept.new_hires, 0);
+  const totalEmployees = totalHires + totalResigns;
+  if (totalEmployees === 0) return '0%';
+  const rate = (totalResigns / totalEmployees) * 100;
+  return `${rate.toFixed(1)}%`;
+};
+
 
 // ----- ส่วน Component หลัก (รวม Home และ Dashboard เข้าด้วยกัน) -----
 function Dashboard() {
@@ -50,9 +81,27 @@ function Dashboard() {
       try {
         setIsLoading(true);
         setError(null);
-        
-        const data = await fetchDashboardData(); 
-        setDashboardData(data);
+
+        const data = await fetchDashboardData();
+        // Transform backend data to match frontend expected format
+        const transformedData = {
+          stats: {
+            totalRequests: data.totals.requests,
+            pendingRequests: data.totals.pending,
+            hireRate: calculateHireRate(data.per_department),
+            resignationRate: calculateResignationRate(data.per_department)
+          },
+          pieData: [
+            { name: 'คำร้องที่อนุมัติแล้ว', value: data.approval_pie.approved },
+            { name: 'คำร้องรออนุมัติ', value: data.approval_pie.waiting }
+          ],
+          lineData: data.per_department.map(dept => ({
+            department: dept.dept_name,
+            hires: dept.new_hires,
+            resignations: dept.resigns
+          }))
+        };
+        setDashboardData(transformedData);
 
       } catch (err) {
         setError('ไม่สามารถดึงข้อมูลจากเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง');

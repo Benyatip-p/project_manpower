@@ -12,21 +12,25 @@ import (
 
 
 func CreateNewEmployee(req *models.NewEmployeeRequest) error {
-	roleName := strings.ToUpper(req.Role)
+	// Normalize inputs
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	password := strings.TrimSpace(req.Password)
+	roleName := strings.ToUpper(strings.TrimSpace(req.Role))
+
 	roleID, err := GetIDByName("role", roleName)
 	if err != nil {
 		return fmt.Errorf("invalid role name: %s", req.Role)
 	}
 
 	var deptID, posID int
-	if req.Department != "" {
-		deptID, err = GetIDByName("department", strings.ToUpper(req.Department))
+	if d := strings.TrimSpace(req.Department); d != "" {
+		deptID, err = GetIDByName("department", strings.ToUpper(d))
 		if err != nil {
 			return fmt.Errorf("invalid department name: %s", req.Department)
 		}
 	}
-	if req.Position != "" {
-		posID, err = GetIDByName("position", strings.ToUpper(req.Position))
+	if p := strings.TrimSpace(req.Position); p != "" {
+		posID, err = GetIDByName("position", strings.ToUpper(p))
 		if err != nil {
 			return fmt.Errorf("invalid position name: %s", req.Position)
 		}
@@ -48,11 +52,11 @@ func CreateNewEmployee(req *models.NewEmployeeRequest) error {
 	`
 
 	_, err = database.DB.Exec(query,
-		req.EmployeeID,
-		req.FirstName,
-		req.LastName,
-		req.Email,
-		req.Password,
+		strings.TrimSpace(req.EmployeeID),
+		strings.TrimSpace(req.FirstName),
+		strings.TrimSpace(req.LastName),
+		email,
+		password,
 		sqlPosID,
 		sqlDeptID,
 		roleID,
@@ -70,21 +74,25 @@ func CreateNewEmployee(req *models.NewEmployeeRequest) error {
 }
 
 func UpdateEmployee(employeeID string, req *models.NewEmployeeRequest) error {
-	roleName := strings.ToUpper(req.Role)
+	// Normalize inputs
+	roleName := strings.ToUpper(strings.TrimSpace(req.Role))
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	passwordTrim := strings.TrimSpace(req.Password)
+
 	roleID, err := GetIDByName("role", roleName)
 	if err != nil {
 		return fmt.Errorf("invalid role name: %s", req.Role)
 	}
 
 	var deptID, posID int
-	if req.Department != "" {
-		deptID, err = GetIDByName("department", strings.ToUpper(req.Department))
+	if d := strings.TrimSpace(req.Department); d != "" {
+		deptID, err = GetIDByName("department", strings.ToUpper(d))
 		if err != nil {
 			return fmt.Errorf("invalid department name: %s", req.Department)
 		}
 	}
-	if req.Position != "" {
-		posID, err = GetIDByName("position", strings.ToUpper(req.Position))
+	if p := strings.TrimSpace(req.Position); p != "" {
+		posID, err = GetIDByName("position", strings.ToUpper(p))
 		if err != nil {
 			return fmt.Errorf("invalid position name: %s", req.Position)
 		}
@@ -108,18 +116,18 @@ func UpdateEmployee(employeeID string, req *models.NewEmployeeRequest) error {
         "role_id = $6",
     }
     args := []interface{}{
-        req.FirstName,
-        req.LastName,
-        req.Email,
-        sqlPosID,
-        sqlDeptID,
-        roleID,
+    	strings.TrimSpace(req.FirstName),
+    	strings.TrimSpace(req.LastName),
+    	email,
+    	sqlPosID,
+    	sqlDeptID,
+    	roleID,
     }
 
     // Include password only if it's provided
-    if req.Password != "" {
-        updateFields = append(updateFields, fmt.Sprintf("password = $%d", len(args)+1))
-        args = append(args, req.Password)
+    if passwordTrim != "" {
+    	updateFields = append(updateFields, fmt.Sprintf("password = $%d", len(args)+1))
+    	args = append(args, passwordTrim)
     }
 
     // Add employeeID as the last argument for the WHERE clause

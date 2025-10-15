@@ -1,4 +1,4 @@
-package handlers
+y ckage handlers
 
 import (
 	"mantest/backend/internal/models"
@@ -43,15 +43,29 @@ func UpdateEmployeeHandler(c *gin.Context) {
         return
     }
 
-    var req models.NewEmployeeRequest
+    // Use UpdateEmployeeRequest so password is OPTIONAL on edit
+    var req models.UpdateEmployeeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload", "details": err.Error()})
         return
     }
-    
-    req.EmployeeID = employeeID 
 
-	err := services.UpdateEmployee(employeeID, &req)
+    // Ensure path param is the source of truth
+    req.EmployeeID = employeeID
+
+    // Convert to NewEmployeeRequest (service uses optional password already)
+    newReq := models.NewEmployeeRequest{
+        EmployeeID: req.EmployeeID,
+        FirstName:  req.FirstName,
+        LastName:   req.LastName,
+        Email:      req.Email,
+        Password:   req.Password, // may be empty, service will ignore if blank
+        Role:       req.Role,
+        Department: req.Department,
+        Position:   req.Position,
+    }
+
+	err := services.UpdateEmployee(employeeID, &newReq)
 	if err != nil {
         if err.Error() == "employee not found or no changes made" {
             c.JSON(http.StatusNotFound, gin.H{"error": "Employee not found or no changes made"})

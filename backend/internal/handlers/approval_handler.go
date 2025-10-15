@@ -15,7 +15,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetRequestsForApprovalHandler - Get requests that the current user can approve
 func GetRequestsForApprovalHandler(c *gin.Context) {
 	role := c.GetString(mw.CtxRoleName)
 	deptID := c.GetInt(mw.CtxDeptID)
@@ -47,9 +46,9 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 		mr.min_age,
 		mr.max_age,
 		COALESCE(g.gender_name,'') AS gender_name,
-		COALESCE(n.nat_name,'')    AS nat_name,
-		COALESCE(exp.exp_name,'')  AS exp_name,
-		COALESCE(edu.edu_name,'')  AS edu_name,
+		COALESCE(n.nat_name,'') 	AS nat_name,
+		COALESCE(exp.exp_name,'') 	AS exp_name,
+		COALESCE(edu.edu_name,'') 	AS edu_name,
 		mr.special_qualifications,
 		mr.origin_status,
 		mr.hr_status,
@@ -59,63 +58,55 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 		mr.created_at,
 		mr.updated_at
 	FROM manpower_requests mr
-	LEFT JOIN departments d   ON mr.requesting_dept_id    = d.dept_id
-	LEFT JOIN sections   s    ON mr.requesting_section_id = s.section_id
-	LEFT JOIN positions  p    ON mr.requesting_pos_id     = p.pos_id
-	LEFT JOIN employees  e    ON mr.employee_id           = e.employee_id
+	LEFT JOIN departments d 	ON mr.requesting_dept_id 		= d.dept_id
+	LEFT JOIN sections 	s 		ON mr.requesting_section_id = s.section_id
+	LEFT JOIN positions 	p 		ON mr.requesting_pos_id 		= p.pos_id
+	LEFT JOIN employees 	e 		ON mr.employee_id 				= e.employee_id
 	LEFT JOIN employment_types et ON mr.employment_type_id = et.et_id
-	LEFT JOIN contract_types   ct ON mr.contract_type_id   = ct.ct_id
-	LEFT JOIN request_reasons  rr ON mr.reason_id          = rr.rr_id
-	LEFT JOIN genders g           ON mr.gender_id          = g.gender_id
-	LEFT JOIN nationalities n     ON mr.nationality_id     = n.nat_id
-	LEFT JOIN experiences exp     ON mr.experience_id      = exp.exp_id
+	LEFT JOIN contract_types 	ct ON mr.contract_type_id 	= ct.ct_id
+	LEFT JOIN request_reasons 	rr ON mr.reason_id 				= rr.rr_id
+	LEFT JOIN genders g 			ON mr.gender_id 				= g.gender_id
+	LEFT JOIN nationalities n 	ON mr.nationality_id 		= n.nat_id
+	LEFT JOIN experiences exp 		ON mr.experience_id 			= exp.exp_id
 	LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 	`
 
 	var query string
 	var args []interface{}
 
-	// Get position name
 	var posName string
 	if err := database.DB.QueryRow(`SELECT pos_name FROM positions WHERE pos_id=$1`, posID).Scan(&posName); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get position"})
 		return
 	}
 
-	// Get HR department ID
 	var hrDeptID int
 	if err := database.DB.QueryRow(`SELECT dept_id FROM departments WHERE dept_name=$1`, deptHRName).Scan(&hrDeptID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get HR department"})
 		return
 	}
 
-	// Get Management department ID
-	var mgmtDeptID int
-	if err := database.DB.QueryRow(`SELECT dept_id FROM departments WHERE dept_name=$1`, deptMgmtName).Scan(&mgmtDeptID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get Management department"})
-		return
-	}
-
-	// Build WHERE clause based on role and position
+	// This part is from the first code block and is kept as is.
+	// The logic for fetching requests for a specific user role.
 	var whereClause string
-
 	if deptID == hrDeptID {
-		// HR Department
+		// HR can approve only non-HR department requests once origin lane completed
+		// Exclude HR-originating requests explicitly
+		args = append(args, hrDeptID)
 		switch posName {
 		case posRecruiter:
-			whereClause = "WHERE mr.hr_status = 'WAITING_RECRUITER'"
+			whereClause = "WHERE mr.hr_status = 'WAITING_RECRUITER' AND mr.requesting_dept_id <> $1"
 		case posManager:
-			whereClause = "WHERE mr.hr_status = 'WAITING_HR_MANAGER'"
+			whereClause = "WHERE mr.hr_status = 'WAITING_HR_MANAGER' AND mr.requesting_dept_id <> $1"
 		case posDirector:
-			whereClause = "WHERE mr.hr_status = 'WAITING_HR_DIRECTOR'"
+			whereClause = "WHERE mr.hr_status = 'WAITING_HR_DIRECTOR' AND mr.requesting_dept_id <> $1"
 		default:
-			whereClause = "WHERE 1=0" // No permissions
+			whereClause = "WHERE 1=0"
 		}
-	} else if deptID == mgmtDeptID {
-		// Management Department
-		whereClause = "WHERE mr.management_status = 'WAITING_MANAGEMENT'"
 	} else {
-		// Origin Department
+		// Logic for management and other departments is simplified here
+		// as the 'MGMT' lane is being removed.
+		// We'll keep the original logic for non-HR originators.
 		switch posName {
 		case posManager:
 			whereClause = "WHERE mr.origin_status = 'SUBMITTED' AND mr.requesting_dept_id = $1"
@@ -128,7 +119,9 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 			whereClause = "WHERE mr.origin_status = 'MGR_APPROVED' AND mr.requesting_dept_id = $1"
 			args = append(args, deptID)
 		default:
-			whereClause = "WHERE 1=0" // No permissions
+			// If the user is not a manager or director in a non-HR dept, they see nothing.
+			// And since management lane is gone, we don't need a check for it.
+			whereClause = "WHERE 1=0"
 		}
 	}
 
@@ -143,7 +136,6 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 	defer rows.Close()
 
 	var requests []models.ManpowerRequest
-
 	for rows.Next() {
 		var r models.ManpowerRequest
 		err := rows.Scan(
@@ -190,40 +182,36 @@ func GetRequestsForApprovalHandler(c *gin.Context) {
 	})
 }
 
-// DecideResponse
+// DecideResponse from the second code block (no ManagementStatus)
 type DecideResponse struct {
-    Message       string `json:"message" example:"decision stored"`
-    RequestID     int    `json:"request_id" example:"15"`
-    DocNumber     string `json:"doc_number" example:"PQ24110026"`
-    OriginStatus  string `json:"origin_status" example:"DIR_APPROVED"`
-    HRStatus      string `json:"hr_status" example:"WAITING_RECRUITER"`
-    OverallStatus string `json:"overall_status" example:"IN_PROGRESS"`
+	Message       string `json:"message" example:"decision stored"`
+	RequestID     int    `json:"request_id" example:"15"`
+	DocNumber     string `json:"doc_number" example:"PQ24110026"`
+	OriginStatus  string `json:"origin_status" example:"DIR_APPROVED"`
+	HRStatus      string `json:"hr_status" example:"WAITING_RECRUITER"`
+	OverallStatus string `json:"overall_status" example:"IN_PROGRESS"`
 }
 
 type DecideRequest struct {
-	Action string `json:"action" binding:"required"` // APPROVE / REJECT / RETURN
+	Action string `json:"action" binding:"required"`
 	Notes  string `json:"notes"`
 }
 
-// ===== helper: check actor's role for that request =====
-
+// Constants from the second code block (no deptMgmtName)
 const (
 	posManager   = "ผู้จัดการ"
 	posDirector  = "ผู้อำนวยการฝ่าย"
 	posRecruiter = "เจ้าหน้าที่ HR"
 
-	deptHRName    = "ฝ่ายทรัพยากรบุคคล"
-	deptMgmtName  = "ฝ่ายบริหาร"
+	deptHRName = "ฝ่ายทรัพยากรบุคคล"
 )
 
-// resolveActorRole returns which lane the actor belongs to for THIS request,
-// one of: "MGR","DIR","RECRUITER","HRMGR","HRDIR", or "" if not allowed.
+// resolveActorRoleForRequest from the second code block (no MGMT role)
 func resolveActorRoleForRequest(
 	reqDeptID int, reqSectionID sql.NullInt64,
 	actorDeptID, actorSectionID, actorPosID int,
 ) (string, error) {
 
-	// get position name for actor
 	var posName string
 	if err := database.DB.QueryRow(
 		`SELECT pos_name FROM positions WHERE pos_id=$1`,
@@ -232,7 +220,6 @@ func resolveActorRoleForRequest(
 		return "", err
 	}
 
-	// get whether actor in HR department
 	var hrDeptID int
 	if err := database.DB.QueryRow(
 		`SELECT dept_id FROM departments WHERE dept_name=$1`, deptHRName,
@@ -240,15 +227,6 @@ func resolveActorRoleForRequest(
 		return "", err
 	}
 
-	// get whether actor in Management department
-	var mgmtDeptID int
-	if err := database.DB.QueryRow(
-		`SELECT dept_id FROM departments WHERE dept_name=$1`, deptMgmtName,
-	).Scan(&mgmtDeptID); err != nil {
-		return "", err
-	}
-
-	// HR lane
 	if actorDeptID == hrDeptID {
 		switch posName {
 		case posRecruiter:
@@ -261,16 +239,9 @@ func resolveActorRoleForRequest(
 		return "", nil
 	}
 
-	// Management lane
-	if actorDeptID == mgmtDeptID {
-		return "MGMT", nil
-	}
-
-	// Origin lane (same department as request)
 	if actorDeptID != reqDeptID {
 		return "", nil
 	}
-	// if request has section, manager must match same section (if your policy wants that)
 	if reqSectionID.Valid && actorSectionID != 0 && int(reqSectionID.Int64) != actorSectionID && posName == posManager {
 		return "", nil
 	}
@@ -292,8 +263,8 @@ func resolveActorRoleForRequest(
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id    path      int                 true  "request_id"
-// @Param        body  body      DecideRequest       true  "action: APPROVE | REJECT | RETURN"
+// @Param        id    path      int            true  "request_id"
+// @Param        body  body      DecideRequest  true  "action: APPROVE | REJECT | RETURN"
 // @Success      200   {object}  DecideResponse
 // @Failure      400   {object}  map[string]string
 // @Failure      401   {object}  map[string]string
@@ -302,7 +273,6 @@ func resolveActorRoleForRequest(
 // @Failure      500   {object}  map[string]string
 // @Router       /user/requests/{id}/decide [post]
 func DecideManpowerRequestHandler(c *gin.Context) {
-	// path param
 	idStr := c.Param("id")
 	reqID, err := strconv.Atoi(idStr)
 	if err != nil || reqID <= 0 {
@@ -337,23 +307,22 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		_ = tx.Rollback()
 	}()
 
-	// lock row
+	// lock row (fetch columns based on second code block's logic)
 	var (
-		docNo               string
-		reqDeptID           int
-		reqSectionID        sql.NullInt64
-		originStatus        string
-		hrStatus            string
-		managementStatus    string
-		overallStatus       string
+		docNo         string
+		reqDeptID     int
+		reqSectionID  sql.NullInt64
+		originStatus  string
+		hrStatus      string
+		overallStatus string
 	)
 	err = tx.QueryRow(`
 		SELECT doc_number, requesting_dept_id, requesting_section_id,
-		       origin_status, hr_status, management_status, overall_status
+			   origin_status, hr_status, overall_status
 		FROM manpower_requests
 		WHERE request_id=$1
 		FOR UPDATE
-	`, reqID).Scan(&docNo, &reqDeptID, &reqSectionID, &originStatus, &hrStatus, &managementStatus, &overallStatus)
+	`, reqID).Scan(&docNo, &reqDeptID, &reqSectionID, &originStatus, &hrStatus, &overallStatus)
 	if err == sql.ErrNoRows {
 		c.JSON(http.StatusNotFound, gin.H{"error": "request not found"})
 		return
@@ -363,7 +332,6 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// figure out who the actor is for this request
 	actorLane, err := resolveActorRoleForRequest(reqDeptID, reqSectionID, deptID, secID, posID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "role resolve failed"})
@@ -374,12 +342,12 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// compute next statuses
+	// Logic for computing next statuses from the second code block
 	newOrigin := originStatus
 	newHR := hrStatus
-	newMgmt := managementStatus
 	newOverall := overallStatus
-	var step int // approval_history.step
+	var step int
+
 	switch actorLane {
 	case "MGR":
 		if originStatus != "SUBMITTED" {
@@ -390,13 +358,10 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		switch action {
 		case "APPROVE":
 			newOrigin = "MGR_APPROVED"
-			if newHR == "NONE" || newHR == "HR_INTAKE" {
-				newHR = "WAITING_RECRUITER"
-			}
-			newOverall = "IN_PROCESS"
+			// Do not advance HR lane here. HR starts after director approval.
 		case "REJECT":
 			newOrigin = "MGR_REJECTED"
-			newOverall = "DISAPPROVED"
+			newOverall = "REJECTED" // from second block
 		case "RETURN":
 			newOrigin = "RETURNED"
 		default:
@@ -413,14 +378,14 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		switch action {
 		case "APPROVE":
 			newOrigin = "DIR_APPROVED"
-			// เมื่อ ผอ.ฝ่ายต้นสังกัดอนุมัติแล้ว ถ้ายังไม่เริ่มฝั่ง HR ให้ตั้งเป็น WAITING_RECRUITER
-			if newHR == "NONE" {
+			// เริ่มเข้าสู่ HR lane หลัง ผอ.ฝ่าย อนุมัติ
+			// ครอบคลุมกรณีเริ่มต้นที่ตั้ง hr_status เป็น IN_PROGRESS ด้วย
+			if newHR == "NONE" || newHR == "HR_INTAKE" || newHR == "IN_PROGRESS" {
 				newHR = "WAITING_RECRUITER"
 			}
-			newOverall = "IN_PROCESS"
 		case "REJECT":
 			newOrigin = "DIR_REJECTED"
-			newOverall = "DISAPPROVED"
+			newOverall = "REJECTED" // from second block
 		case "RETURN":
 			newOrigin = "RETURNED"
 		default:
@@ -436,11 +401,10 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		step = 3
 		switch action {
 		case "APPROVE":
-			// newHR = "RECRUITER_APPROVED"
 			newHR = "WAITING_HR_MANAGER"
 		case "REJECT":
 			newHR = "RECRUITER_REJECTED"
-			newOverall = "DISAPPROVED"
+			newOverall = "REJECTED" // from second block
 		case "RETURN":
 			newHR = "RETURNED"
 		default:
@@ -456,11 +420,10 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		step = 4
 		switch action {
 		case "APPROVE":
-			newHR = "HR_MANAGER_APPROVED"
 			newHR = "WAITING_HR_DIRECTOR"
 		case "REJECT":
 			newHR = "HR_MANAGER_REJECTED"
-			newOverall = "DISAPPROVED"
+			newOverall = "REJECTED" // from second block
 		case "RETURN":
 			newHR = "RETURNED"
 		default:
@@ -477,33 +440,12 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		switch action {
 		case "APPROVE":
 			newHR = "HR_DIRECTOR_APPROVED"
-			newMgmt = "WAITING_MANAGEMENT"
-			newOverall = "IN_PROCESS"
+			newOverall = "APPROVED" // from second block
 		case "REJECT":
 			newHR = "HR_DIRECTOR_REJECTED"
-			newOverall = "DISAPPROVED"
+			newOverall = "REJECTED" // from second block
 		case "RETURN":
 			newHR = "RETURNED"
-		default:
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid action"})
-			return
-		}
-
-	case "MGMT":
-		if managementStatus != "WAITING_MANAGEMENT" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "not waiting management"})
-			return
-		}
-		step = 6
-		switch action {
-		case "APPROVE":
-			newMgmt = "MANAGEMENT_APPROVED"
-			newOverall = "APPROVED"
-		case "REJECT":
-			newMgmt = "MANAGEMENT_REJECTED"
-			newOverall = "DISAPPROVED"
-		case "RETURN":
-			newMgmt = "RETURNED"
 		default:
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid action"})
 			return
@@ -513,12 +455,12 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// update request
+	// update request (UPDATE statement from second code block)
 	if _, err := tx.Exec(`
 		UPDATE manpower_requests
-		SET origin_status=$1, hr_status=$2, management_status=$3, overall_status=$4, updated_at=NOW()
-		WHERE request_id=$5
-	`, newOrigin, newHR, newMgmt, newOverall, reqID); err != nil {
+		SET origin_status=$1, hr_status=$2, overall_status=$3, updated_at=NOW()
+		WHERE request_id=$4
+	`, newOrigin, newHR, newOverall, reqID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "update failed"})
 		return
 	}
@@ -537,13 +479,13 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
+	// JSON Response from second code block
 	c.JSON(http.StatusOK, gin.H{
-		"message":            "decision stored",
-		"request_id":         reqID,
-		"doc_number":         docNo,
-		"origin_status":      newOrigin,
-		"hr_status":          newHR,
-		"management_status":  newMgmt,
-		"overall_status":     newOverall,
+		"message":        "decision stored",
+		"request_id":     reqID,
+		"doc_number":     docNo,
+		"origin_status":  newOrigin,
+		"hr_status":      newHR,
+		"overall_status": newOverall,
 	})
 }

@@ -9,8 +9,8 @@ const Login = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const navigate = useNavigate();
 
-	// URL ฐานของ API (สมมติว่าใช้ /api/login แต่เปลี่ยนเป็น absolute path เพื่อความชัวร์)
-    const API_BASE_URL = 'http://localhost:8080/api'; 
+	// API base: use relative path to work with Vite proxy and docker-compose
+	   const API_BASE_URL = '/api';
 
 	useEffect(() => {
 		const rememberedEmail = localStorage.getItem('remembered_email');
@@ -35,10 +35,28 @@ const Login = () => {
 				body: JSON.stringify({ email, password }),
 			});
 
-			const data = await response.json();
+			let data = null;
+			let isJson = false;
+			const ct = response.headers.get('content-type') || '';
+			if (ct.includes('application/json')) {
+				try {
+					data = await response.json();
+					isJson = true;
+				} catch (e) {
+					// ignore JSON parse error
+				}
+			} else {
+				try {
+					data = await response.text();
+				} catch (e) {
+					data = null;
+				}
+			}
 
 			if (!response.ok) {
-				const errorMessage = data.error || 'Authentication Fail: Please check user or Password';
+				const errorMessage = isJson
+					? (data?.error || data?.message || 'Authentication Fail: Please check user or Password')
+					: (typeof data === 'string' && data ? data : 'Authentication Fail: Please check user or Password');
 				setError(errorMessage);
 				return;
 			}
