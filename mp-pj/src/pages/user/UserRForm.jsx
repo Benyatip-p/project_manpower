@@ -333,7 +333,7 @@ const UserRForm = () => {
     <div className="min-h-screen p-5 bg-gray-50">
       <div className="max-w-4xl mx-auto">
 
-        <h2 className="text-3xl font-bold text-gray-800 mb-8">ใบร้องขอกำลังคน</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-8">ใบขออัตรากำลังคน</h2>
 
         <hr className="my-12 h-0.5 border-t-0 bg-neutral-200 opacity-100" />
 
@@ -398,7 +398,7 @@ const UserRForm = () => {
                   <option key={position.id} value={position.id}>{position.name}</option>
                 ))}
               </select>
-              <p className="text-xs text-gray-500 mt-1">เลือกกลุ่มตำแหน่งงานที่ต้องการ เช่น ผู้จัดการ, เจ้าหน้าที่, พนักงาน</p>
+             
             </div>
           </div>
 
@@ -459,7 +459,7 @@ const UserRForm = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">ชื่อตำแหน่งที่ต้องการ (Job Title)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">ชื่อตำแหน่งที่ต้องการ</label>
               <input
                 type="text"
                 name="requiredPositionName"
@@ -469,7 +469,7 @@ const UserRForm = () => {
                 required
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all"
               />
-              <p className="text-xs text-gray-500 mt-1">ระบุชื่อตำแหน่งและรายละเอียดที่ต้องการอย่างชัดเจน</p>
+        
             </div>
 
             <div>

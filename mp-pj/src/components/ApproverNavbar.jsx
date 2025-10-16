@@ -74,7 +74,7 @@ const ApproveNavbar = ({ onToggleSidebar }) => {
                 </svg>
               </button>
 
-              <Link to="/user" className="flex items-center group">
+              <Link to="/approver/dashboard" className="flex items-center group">
                 <img
                   src="/images/nakla.svg"
                   alt="Manpower"
