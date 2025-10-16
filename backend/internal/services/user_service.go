@@ -7,6 +7,8 @@ import (
 	"mantest/backend/internal/models"
 )
 
+// GetUserProfileByEmail ดึงข้อมูลโปรไฟล์ผู้ใช้จากฐานข้อมูลตามอีเมลที่ระบุ
+
 func GetUserProfileByEmail(email string) (*models.UserProfile, error) {
 	var profile models.UserProfile
 

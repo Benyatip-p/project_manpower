@@ -111,3 +111,5 @@ func GetDashboardOverview(c *gin.Context) {
 
     c.JSON(http.StatusOK, resp)
 }
+
+// GetDashboardOverview จัดการคำขอเพื่อดึงข้อมูลสรุปสำหรับแดชบอร์ด

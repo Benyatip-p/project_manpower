@@ -14,6 +14,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// รีเควสจัดหาพนักงาน (Manpower Request)
+
 // CreateSubmitResponse
 type CreateSubmitResponse struct {
     Message       string `json:"message"        example:"Submitted successfully"`
@@ -41,6 +43,8 @@ type CreateManpowerRequestInput struct {
     SpecialQualifications string  `json:"special_qualifications"`
     TargetHireDate        *string `json:"target_hire_date"` 
 }
+
+// baseSelect คือคำสั่ง SQL พื้นฐานสำหรับดึงข้อมูลคำขอจัดหาพนักงาน
 
 func GetManpowerRequestsHandler(c *gin.Context) {
 	role := c.GetString(mw.CtxRoleName)
@@ -92,6 +96,10 @@ LEFT JOIN nationalities n     ON mr.nationality_id     = n.nat_id
 LEFT JOIN experiences exp     ON mr.experience_id      = exp.exp_id
 LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 `
+// เป็นการกำหนดเงื่อนไขการดึงข้อมูลคำขอจัดหาพนักงานตามบทบาทของผู้ใช้
+// - Admin: เห็นทุกคำขอ
+// - Approver: เห็นคำขอในแผนกของตนเอง หรือถ้าเป็น HR เห็นคำขอที่ไม่ใช่แผนก HR เมื่อผ่านการอนุมัติจากต้นสังกัดแล้ว
+// - User: เห็นเฉพาะคำขอที่ตนเองส่ง หรือคำขอในแผนกหรือส่วนของตนเอง
 
 	var (
 		query string
@@ -101,10 +109,6 @@ LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 	if role == "Admin" {
 		query = baseSelect + " ORDER BY mr.created_at DESC"
 	} else if role == "Approve" {
-		// Approver visibility:
-		// - Non-HR approvers: see requests in their own department
-		// - HR approvers: see non-HR department requests only after origin lane completed (DIR_APPROVED) or already in HR waiting states
-		// - Management (ฝ่ายบริหาร) approvers: see final statuses for awareness
 		var hrDeptID int
 		if err := database.DB.QueryRow(`SELECT dept_id FROM departments WHERE dept_name=$1`, "ฝ่ายทรัพยากรบุคคล").Scan(&hrDeptID); err != nil {
 			log.Println("failed to resolve HR dept id:", err)
@@ -113,24 +117,19 @@ LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 		}
 		var mgmtDeptID int
 		if err := database.DB.QueryRow(`SELECT dept_id FROM departments WHERE dept_name=$1`, "ฝ่ายบริหาร").Scan(&mgmtDeptID); err != nil {
-			// not fatal; management visibility just won't be applied
 			log.Println("warn: failed to resolve Management dept id:", err)
 		}
 
 		if deptID == hrDeptID {
-			// HR: only see other departments' requests when ต้นสังกัด completed or already in HR waiting states
 			query = baseSelect + " WHERE mr.requesting_dept_id <> $1 AND (mr.origin_status = 'DIR_APPROVED' OR mr.hr_status IN ('WAITING_RECRUITER','WAITING_HR_MANAGER','WAITING_HR_DIRECTOR')) ORDER BY mr.created_at DESC"
 			args = append(args, hrDeptID)
 		} else if mgmtDeptID != 0 && deptID == mgmtDeptID {
-			// ฝ่ายบริหาร: see final statuses system-wide (read-only awareness)
 			query = baseSelect + " WHERE mr.overall_status IN ('APPROVED','REJECTED') ORDER BY mr.created_at DESC"
 		} else {
-			// Non-HR approvers: scope to own department and active pipeline
 			query = baseSelect + " WHERE mr.requesting_dept_id = $1 AND mr.overall_status IN ('IN_PROGRESS','WAITING_RECRUITER','WAITING_HR_MANAGER','WAITING_HR_DIRECTOR') ORDER BY mr.created_at DESC"
 			args = append(args, deptID)
 		}
 	} else {
-		// ผู้ใช้ทั่วไป: เห็นเฉพาะคำขอที่ตัวเองส่ง หรืออยู่ในแผนกเดียวกัน
 		if secID > 0 {
 			query = baseSelect + " WHERE (mr.employee_id = $1 OR mr.requesting_section_id = $2) ORDER BY mr.created_at DESC"
 			args = append(args, empID, secID)

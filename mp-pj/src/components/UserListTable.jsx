@@ -54,7 +54,6 @@ const UserListTable = ({
                 basePath = `/${role}`;
               }
 
-              // แปลงวันที่เอกสารให้แสดง dd/mm/yyyy
               const formatDate = (inputDate) => {
                 if (!inputDate) return '-';
 

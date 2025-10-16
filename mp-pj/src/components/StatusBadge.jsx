@@ -1,20 +1,15 @@
-// src/components/StatusBadge.jsx
-
 import React from 'react';
 
 const StatusBadge = ({ status }) => {
-  // 1. จัดการกับค่าว่าง หรือค่าที่ไม่ต้องการแสดงผลก่อน
   if (!status || status === '-' || status === 'undefined' || status === undefined || status === 'NONE') {
     return <span className="text-gray-400">-</span>;
   }
 
-  // 2. เตรียมข้อมูล โดยแปลงเป็น String และตัดช่องว่างที่อาจติดมาออก
   const trimmedStatus = String(status).trim(); 
 
   let badgeColor = '';
   let badgeText = trimmedStatus;
 
-  // 3. กำหนดสีและข้อความตามสถานะ (Normalize ให้แสดงรูปแบบเดียวกันในตาราง)
   const up = trimmedStatus.toUpperCase();
 
   const isRejected =
@@ -23,7 +18,6 @@ const StatusBadge = ({ status }) => {
     up === 'REJECTED' ||
     up === 'DISAPPROVED';
 
-  // หมายเหตุ: MGR_APPROVED เป็นการอนุมัติบางส่วนของต้นสังกัด ยังถือเป็น "รอการอนุมัติ"
   const isApproved =
     trimmedStatus === 'อนุมัติ' ||
     trimmedStatus === 'ผ่านการอนุมัติ' ||
@@ -49,7 +43,6 @@ const StatusBadge = ({ status }) => {
     badgeColor = 'bg-yellow-100 text-yellow-800';
     badgeText = 'รอการอนุมัติ';
   } else {
-    // ค่าที่ไม่รู้จัก แสดงตามค่าเดิม (โทนเทา)
     badgeColor = 'bg-gray-100 text-gray-800';
     badgeText = trimmedStatus;
   }

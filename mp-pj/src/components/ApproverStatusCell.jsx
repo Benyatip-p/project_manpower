@@ -1,12 +1,7 @@
-// src/components/ApproverStatusCell.jsx (แก้ไขแล้ว)
-
 import React from 'react';
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/solid";
 
-// V V V --- เพิ่มบรรทัดนี้เข้ามา --- V V V
 import StatusBadge from './StatusBadge'; 
-
-// ลบ const StatusBadge = ... ที่เคยอยู่ตรงนี้ออกไป
 
 const ApproverStatusCell = ({ 
   doc, 

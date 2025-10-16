@@ -1,5 +1,11 @@
 package handlers
 
+// mapStatusForRole ฟังก์ชันนี้จะทำการแมปสถานะคำขอตามบทบาทของผู้ใช้
+// โดยมีการแปลสถานะเป็นข้อความที่เหมาะสมสำหรับแต่ละบทบาท
+// - สำหรับ "Admin" จะเห็นสถานะจริง (เช่น APPROVED, IN_PROGRESS)
+// - สำหรับ "Approve" จะเห็นสถานะในรูปแบบที่เข้าใจง่ายขึ้น เช่น "รอ Recruiter พิจารณา"
+// - สำหรับผู้ใช้ทั่วไป จะเห็นสถานะในรูปแบบที่เข้าใจง่าย เช่น "แบบร่าง", "ส่งคำขอแล้ว"
+
 func mapStatusForRole(role, origin, hr, management, overall string) string {
 	switch role {
 	case "Admin":

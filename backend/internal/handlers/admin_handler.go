@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
+// ใช้สำหรับจัดการคำขอที่เกี่ยวข้องกับการจัดการพนักงาน เช่น การสร้าง การแก้ไข การลบ และการดึงข้อมูลพนักงาน
 func GetEmployeesHandler(c *gin.Context) {
 	employees, err := services.GetAllEmployees()
 	if err != nil {

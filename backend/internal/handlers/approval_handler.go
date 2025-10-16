@@ -15,7 +15,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
+// อนุมัติคำขอจัดหาพนักงานตามบทบาทของผู้ใช้
+// ผู้จัดการและผู้อำนวยการฝ่ายอนุมัติใน lane ของตนเอง
+// ฝ่ายทรัพยากรบุคคลอนุมัติใน lane ของตนเอง
+// ฝ่ายบริหารอนุมัติขั้นสุดท้าย
+// การตัดสินใจ: APPROVE / REJECT / RETURN
 func GetRequestsForApprovalHandler(c *gin.Context) {
 	role := c.GetString(mw.CtxRoleName)
 	deptID := c.GetInt(mw.CtxDeptID)

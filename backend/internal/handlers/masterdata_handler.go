@@ -53,3 +53,7 @@ func GetMasterDataHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+// GetMasterDataHandler จัดการคำขอเพื่อดึงข้อมูล master data ทั้งหมดในครั้งเดียว
+// master data ประกอบด้วย: แผนก, ตำแหน่ง, ส่วน, ประเภทการจ้างงาน, ประเภทสัญญา, เหตุผลคำขอ, เพศ, สัญชาติ, ประสบการณ์, ระดับการศึกษา, บทบาทผู้ใช้
+// ใช้สำหรับในการแสดงผล dropdown options ในฟอร์มต่างๆ

@@ -53,7 +53,6 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
         lastName: editingUser.lastName || '',
         email: editingUser.email || '',
         status: editingUser.status || 'Active',
-        // ล้างรหัสผ่านเมื่อเข้าสู่โหมดแก้ไข
         password: ''
       });
     } else {
@@ -72,13 +71,11 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // ตรวจสอบความถูกต้อง: บังคับให้ใส่รหัสผ่านเมื่อเป็นผู้ใช้งานใหม่เท่านั้น
+    // ตรวจสอบรหัสผ่านเมื่อเพิ่มผู้ใช้งานใหม่
     if (!editingUser && !formData.password) {
         alert('กรุณาระบุรหัสผ่านสำหรับผู้ใช้งานใหม่');
         return;
     }
-    
     // ตรวจสอบข้อมูลที่จำเป็นอื่น ๆ
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.role || !formData.employeeId) {
         alert('กรุณากรอกข้อมูลที่จำเป็นทั้งหมดให้ครบถ้วน');

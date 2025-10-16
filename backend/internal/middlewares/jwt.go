@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
+// เปลี่ยนคีย์ลับนี้เป็นคีย์ที่ปลอดภัยและเก็บไว้อย่างเหมาะสมในสภาพแวดล้อมจริง
 
 var jwtSecret = []byte("YOUR_ULTRA_SECURE_SECRET_KEY")
 

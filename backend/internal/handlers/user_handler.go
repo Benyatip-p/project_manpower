@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetUserProfileHandler จัดการคำขอเพื่อดึงข้อมูลโปรไฟล์ผู้ใช้ตามอีเมลที่ระบุใน query parameter
 func GetUserProfileHandler(c *gin.Context) {
 	userEmail := c.Query("email")
 	if userEmail == "" {

@@ -38,3 +38,5 @@ func LoginHandler(c *gin.Context) {
 		Email: email,
 	})
 }
+
+// ตรวจสอบผู้ใช้และคืน JWT token (แนบใน Authorization: Bearer <token>)
