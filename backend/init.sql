@@ -184,42 +184,42 @@ INSERT INTO education_levels (edu_name) VALUES
 
 INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, section_id, role_id)
 VALUES
-('E001', 'แอดมิน', 'ทดสอบ', 'admin@example.com', '1234', 4, 4, 5, 1),
-('E002', 'ผู้ใช้งาน', 'ทดสอบ', 'user@example.com', '1234', 3, 3, 4, 3),
-('E003', 'ผู้จัดการแผนก', 'ทดสอบ', 'manager@example.com', '1234', 1, 3, 4, 2),
-('E004', 'ผู้อำนวยการฝ่าย', 'ทดสอบ', 'director@example.com', '1234', 8, 3, 4, 2),
-('E005', 'เจ้าหน้าที่สรรหา', 'ทดสอบ', 'recruiter@example.com', '1234', 2, 2, 6, 2),
-('E006', 'ผู้จัดการแผนก hr', 'ทดสอบ', 'manager_hr@example.com', '1234', 1, 2, 6, 2),
-('E007', 'ผู้อำนวยการฝ่าย hr', 'ทดสอบ', 'director_hr@example.com', '1234', 8, 2, 6, 2);
+('E001', 'แอดมิน', 'ทดสอบ', 'admin@email.com', '1234', 4, 4, 5, 1),
+('E002', 'ผู้ใช้งาน', 'ทดสอบ', 'user@email.com', '1234', 3, 3, 4, 3),
+('E003', 'ผู้จัดการแผนก', 'ทดสอบ', 'manager@email.com', '1234', 1, 3, 4, 2),
+('E004', 'ผู้อำนวยการฝ่าย', 'ทดสอบ', 'director@email.com', '1234', 8, 3, 4, 2),
+('E005', 'เจ้าหน้าที่สรรหา', 'ทดสอบ', 'recruiter@email.com', '1234', 2, 2, 6, 2),
+('E006', 'ผู้จัดการแผนก hr', 'ทดสอบ', 'manager_hr@email.com', '1234', 1, 2, 6, 2),
+('E007', 'ผู้อำนวยการฝ่าย hr', 'ทดสอบ', 'director_hr@email.com', '1234', 8, 2, 6, 2);
 
 
 INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, section_id, role_id)
 VALUES
-('E101', 'สมศักดิ์', 'ขยันยิ่ง', 'som@example.com', '1234',
+('E101', 'สมศักดิ์', 'ขยันยิ่ง', 'som@email.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
  (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
  3),
 
-('E102', 'สมหญิง', 'รักงาน', 'somying@example.com', '1234',
+('E102', 'สมหญิง', 'รักงาน', 'somying@email.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
  3),
 
-('E103', 'มานี', 'มีนา', 'manee@example.com', '1234',
+('E103', 'มานี', 'มีนา', 'manee@email.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
  (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
  3),
 
-('E104', 'เอกชัย', 'เจริญสุข', 'ekachai@example.com', '1234',
+('E104', 'เอกชัย', 'เจริญสุข', 'ekachai@email.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
  (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
  3),
 
-('E105', 'วิทวัส', 'เก่งกาจ', 'witwat@example.com', '1234',
+('E105', 'วิทวัส', 'เก่งกาจ', 'witwat@email.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายเทคโนโลยีสารสนเทศ'),
  (SELECT section_id FROM sections WHERE section_name='แผนกไอที'),

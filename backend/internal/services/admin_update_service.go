@@ -93,9 +93,34 @@ func UpdateEmployee(employeeID string, req *models.UpdateEmployeeRequest) error 
 }
 
 func DeleteEmployee(employeeID string) error {
-	query := "DELETE FROM employees WHERE employee_id = $1"
+	// Start transaction to ensure data integrity
+	tx, err := database.DB.Begin()
+	if err != nil {
+		log.Printf("Failed to begin transaction: %v", err)
+		return errors.New("failed to start deletion process")
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
 
-	result, err := database.DB.Exec(query, employeeID)
+	// First, delete approval history records where this employee is an approver
+	_, err = tx.Exec("DELETE FROM approval_history WHERE approver_id = $1", employeeID)
+	if err != nil {
+		log.Printf("Failed to delete approval history for employee %s: %v", employeeID, err)
+		return errors.New("failed to delete employee approval history")
+	}
+
+	// Then, delete manpower requests created by this employee
+	_, err = tx.Exec("DELETE FROM manpower_requests WHERE employee_id = $1", employeeID)
+	if err != nil {
+		log.Printf("Failed to delete manpower requests for employee %s: %v", employeeID, err)
+		return errors.New("failed to delete employee requests")
+	}
+
+	// Finally, delete the employee record
+	result, err := tx.Exec("DELETE FROM employees WHERE employee_id = $1", employeeID)
 	if err != nil {
 		log.Printf("SQL DELETE Employee Error: %v", err)
 		return errors.New("failed to delete employee")
@@ -106,5 +131,13 @@ func DeleteEmployee(employeeID string) error {
 		return errors.New("employee not found")
 	}
 
+	// Commit the transaction
+	err = tx.Commit()
+	if err != nil {
+		log.Printf("Failed to commit transaction: %v", err)
+		return errors.New("failed to complete employee deletion")
+	}
+
+	log.Printf("Successfully deleted employee %s and all related records", employeeID)
 	return nil
 }

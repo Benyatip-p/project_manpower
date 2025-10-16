@@ -6,14 +6,25 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func GetEmployeesHandler(c *gin.Context) {
+	// Get user context for logging
+	role := c.GetString("role_name")
+	deptID := c.GetInt("dept_id")
+	employeeID := c.GetString("employee_id")
+
+	log.Printf("GetEmployees request: employeeID=%s, role=%s, deptID=%d", employeeID, role, deptID)
+
 	employees, err := services.GetAllEmployees()
 	if err != nil {
+		log.Printf("Error fetching employees: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch employee list"})
 		return
 	}
+
+	log.Printf("Returning %d employees for admin user", len(employees))
 	c.JSON(http.StatusOK, employees)
 }
 
@@ -63,9 +74,16 @@ func UpdateEmployeeHandler(c *gin.Context) {
 
 func DeleteEmployeeHandler(c *gin.Context) {
 	employeeID := c.Param("id")
+	role := c.GetString("role_name")
+	deptID := c.GetInt("dept_id")
+	currentEmployeeID := c.GetString("employee_id")
+
+	log.Printf("DeleteEmployee attempt: targetEmployeeID=%s, currentEmployeeID=%s, role=%s, deptID=%d",
+		employeeID, currentEmployeeID, role, deptID)
 
 	err := services.DeleteEmployee(employeeID)
 	if err != nil {
+		log.Printf("DeleteEmployee error for %s: %v", employeeID, err)
 		if err.Error() == "employee not found" {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
@@ -74,6 +92,7 @@ func DeleteEmployeeHandler(c *gin.Context) {
 		return
 	}
 
+	log.Printf("Successfully deleted employee %s", employeeID)
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Employee deleted successfully!",
