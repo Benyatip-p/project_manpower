@@ -73,7 +73,7 @@ const AdminNavbar = ({ onToggleSidebar }) => {
                 </svg>
               </button>
 
-              <Link to="/user" className="flex items-center group">
+              <Link to="/admin" className="flex items-center group">
                 <img
                   src="/images/nakla.svg"
                   alt="Manpower"
