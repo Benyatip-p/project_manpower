@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import UserStatusDropdown from '../../components/UserStatusDropdown';
 import UserListTable from '../../components/UserListTable';
 import Pagination from '../../components/Pagination';
+import ConfirmModal from '../../components/ConfirmModal';
 import { getUserRequests } from '../../services/api';
 
 const Usermainpage = () => {
@@ -11,6 +12,13 @@ const Usermainpage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1); 
   const ITEMS_PER_PAGE = 10;
+
+  // State สำหรับ delete confirmation
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    documentId: null,
+    documentNumber: ''
+  });
 
   
   const [inputDocNumber, setInputDocNumber] = useState('');
@@ -311,14 +319,44 @@ const Usermainpage = () => {
   };
 
   const handleDelete = (documentId, documentNumber) => {
-    if (window.confirm(`คุณต้องการลบเอกสารเลขที่ "${documentNumber}" ใช่หรือไม่?`)) {
-      console.log(`กำลังส่งคำขอลบเอกสาร ID: ${documentId} ไปยังเซิร์ฟเวอร์...`);
-      
-      setDocuments(currentDocuments =>
-        currentDocuments.filter(doc => doc.id !== documentId)
-      );
-      alert(`เอกสาร "${documentNumber}" ถูกลบเรียบร้อยแล้ว`);
+    setDeleteModal({
+      isOpen: true,
+      documentId: documentId,
+      documentNumber: documentNumber
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`/api/user/requests/${deleteModal.documentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // ลบสำเร็จ - อัปเดต state
+        setDocuments(currentDocuments =>
+          currentDocuments.filter(doc => doc.id !== deleteModal.documentId)
+        );
+        alert(`ลบเอกสาร "${deleteModal.documentNumber}" เรียบร้อยแล้ว`);
+      } else {
+        const errorData = await response.json();
+        alert(`ไม่สามารถลบได้: ${errorData.error || 'เกิดข้อผิดพลาด'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      alert('เกิดข้อผิดพลาดในการลบ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setDeleteModal({ isOpen: false, documentId: null, documentNumber: '' });
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, documentId: null, documentNumber: '' });
   };
 
   return (
@@ -391,6 +429,17 @@ const Usermainpage = () => {
           )}
         </>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        title="ยืนยันการลบ"
+        message={`คุณต้องการลบเอกสารเลขที่ "${deleteModal.documentNumber}" ใช่หรือไม่?`}
+        type="reject"
+        showReasonInput={false}
+      />
 
     </div>
   );

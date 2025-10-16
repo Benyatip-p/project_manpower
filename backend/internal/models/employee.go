@@ -6,4 +6,5 @@ type UserProfile struct {
 	Email      string `json:"email"`
 	Role       string `json:"role"`
 	Department string `json:"department"`
+	Section    string `json:"section"`
 }

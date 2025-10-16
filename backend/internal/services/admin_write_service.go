@@ -7,10 +7,54 @@ import (
 	"log"
 	"mantest/backend/internal/database"
 	"mantest/backend/internal/models"
+	"strconv"
 	"strings"
 )
 
+// GenerateEmployeeID สร้างรหัสพนักงานอัตโนมัติ รูปแบบ E001, E002, ...
+func GenerateEmployeeID() (string, error) {
+	var lastID string
+	query := `
+		SELECT employee_id 
+		FROM employees 
+		WHERE employee_id ~ '^E[0-9]+$'
+		ORDER BY CAST(SUBSTRING(employee_id FROM 2) AS INTEGER) DESC 
+		LIMIT 1
+	`
+
+	err := database.DB.QueryRow(query).Scan(&lastID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// ถ้ายังไม่มีพนักงานเลย เริ่มที่ E001
+			return "E001", nil
+		}
+		return "", err
+	}
+
+	// ดึงตัวเลขจาก E001 -> 001 -> 1
+	numStr := lastID[1:] // ตัดตัว E ออก
+	num, err := strconv.Atoi(numStr)
+	if err != nil {
+		return "", fmt.Errorf("invalid employee_id format: %s", lastID)
+	}
+
+	// เพิ่มเลขขึ้น 1 และ format กลับเป็น E001, E002, ...
+	newNum := num + 1
+	newID := fmt.Sprintf("E%03d", newNum)
+
+	return newID, nil
+}
+
 func CreateNewEmployee(req *models.NewEmployeeRequest) error {
+	// ถ้าไม่ได้ส่ง employee_id มา ให้ auto-generate
+	employeeID := req.EmployeeID
+	if employeeID == "" {
+		var err error
+		employeeID, err = GenerateEmployeeID()
+		if err != nil {
+			return fmt.Errorf("failed to generate employee ID: %v", err)
+		}
+	}
 	roleName := strings.ToUpper(req.Role)
 	roleID, err := GetIDByName("role", roleName)
 	if err != nil {
@@ -47,7 +91,7 @@ func CreateNewEmployee(req *models.NewEmployeeRequest) error {
 	`
 
 	_, err = database.DB.Exec(query,
-		req.EmployeeID,
+		employeeID, // ใช้ employeeID ที่ generate หรือที่ส่งมา
 		req.FirstName,
 		req.LastName,
 		req.Email,

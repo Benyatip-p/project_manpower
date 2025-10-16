@@ -22,6 +22,30 @@ const UserListTable = ({
   console.log('canApprove type:', typeof canApprove);
   console.log('canApprove function exists:', typeof canApprove === 'function');
 
+  // ฟังก์ชันตรวจสอบว่าวันที่เกินกำหนดหรือไม่
+  const isOverdue = (dueDateString) => {
+    if (!dueDateString || dueDateString === '-') return false;
+    
+    try {
+      // แปลงวันที่จากรูปแบบไทย (dd/mm/yyyy) เป็น Date object
+      const parts = dueDateString.split('/');
+      if (parts.length !== 3) return false;
+      
+      const day = parseInt(parts[0]);
+      const month = parseInt(parts[1]) - 1; // Month เริ่มที่ 0
+      const year = parseInt(parts[2]) - 543; // แปลงจาก พ.ศ. เป็น ค.ศ.
+      
+      const dueDate = new Date(year, month, day);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // ตั้งเวลาเป็น 00:00:00 เพื่อเปรียบเทียบวันที่เท่านั้น
+      
+      return dueDate < today;
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return false;
+    }
+  };
+
   if (isLoading) {
     return <div className="p-4 text-center text-gray-500">กำลังโหลดข้อมูล...</div>;
   }
@@ -52,7 +76,9 @@ const UserListTable = ({
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">HR</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">ฝ่ายบริหาร</th>
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ครบกำหนด</th>
-              <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">การอนุมัติ</th>
+              {role !== 'user' && (
+                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">การอนุมัติ</th>
+              )}
               <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">เพิ่มเติม</th>
             </tr>
           </thead>
@@ -122,36 +148,42 @@ const UserListTable = ({
                   <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.hrStatus} /></td>
                   <td className="px-6 py-4 whitespace-nowrap text-center"><ApproverStatusCell status={doc.ceoStatus} /></td>
                   
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-500">{doc.dueDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    {(() => {
-                      const showButtons = isApprovalMode && canApprove && canApprove(doc);
-                      console.log(`Doc ${doc.documentNumber}: isApprovalMode=${isApprovalMode}, canApprove exists=${!!canApprove}, canApprove(doc)=${canApprove ? canApprove(doc) : 'N/A'}, showButtons=${showButtons}`);
-                      
-                      if (showButtons) {
-                        return (
-                          <div className="flex justify-center items-center space-x-2">
-                            <button
-                              onClick={() => onApprove(doc.id, relevantApproverType)}
-                              className="p-1 text-green-500 rounded-full hover:bg-green-100 focus:outline-none"
-                              title="อนุมัติ"
-                            >
-                              <CheckIcon className="w-6 h-6" />
-                            </button>
-                            <button
-                              onClick={() => onReject(doc.id, relevantApproverType)}
-                              className="p-1 text-red-500 rounded-full hover:bg-red-100 focus:outline-none"
-                              title="ไม่อนุมัติ"
-                            >
-                              <XIcon className="w-6 h-6" />
-                            </button>
-                          </div>
-                        );
-                      } else {
-                        return <span className="text-gray-400">-</span>;
-                      }
-                    })()}
+                  <td className={`px-6 py-4 whitespace-nowrap text-sm text-center font-medium ${
+                    isOverdue(doc.dueDate) ? 'text-red-600' : 'text-gray-500'
+                  }`}>
+                    {doc.dueDate}
                   </td>
+                  {role !== 'user' && (
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      {(() => {
+                        const showButtons = isApprovalMode && canApprove && canApprove(doc);
+                        console.log(`Doc ${doc.documentNumber}: isApprovalMode=${isApprovalMode}, canApprove exists=${!!canApprove}, canApprove(doc)=${canApprove ? canApprove(doc) : 'N/A'}, showButtons=${showButtons}`);
+                        
+                        if (showButtons) {
+                          return (
+                            <div className="flex justify-center items-center space-x-2">
+                              <button
+                                onClick={() => onApprove(doc.id, relevantApproverType)}
+                                className="p-1 text-green-500 rounded-full hover:bg-green-100 focus:outline-none"
+                                title="อนุมัติ"
+                              >
+                                <CheckIcon className="w-6 h-6" />
+                              </button>
+                              <button
+                                onClick={() => onReject(doc.id, relevantApproverType)}
+                                className="p-1 text-red-500 rounded-full hover:bg-red-100 focus:outline-none"
+                                title="ไม่อนุมัติ"
+                              >
+                                <XIcon className="w-6 h-6" />
+                              </button>
+                            </div>
+                          );
+                        } else {
+                          return <span className="text-gray-400">-</span>;
+                        }
+                      })()}
+                    </td>
+                  )}
 
                   <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                     <div className="flex items-center justify-center space-x-4">

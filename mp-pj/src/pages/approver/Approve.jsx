@@ -166,6 +166,7 @@ const Approve = () => {
           managerStatus: displayStatus.managerStatus,
           hrStatus: displayStatus.hrStatus,
           ceoStatus: displayStatus.ceoStatus,
+          dueDate: item.target_hire_date ? new Date(item.target_hire_date).toLocaleDateString('th-TH') : '-',
           originStatus: item.origin_status,
           rawHrStatus: item.hr_status,
           overallStatus: item.overall_status,

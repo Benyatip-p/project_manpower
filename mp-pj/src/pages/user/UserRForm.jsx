@@ -8,7 +8,7 @@ const UserRForm = () => {
     documentDate: '',
     departmentId: '',
     sectionId: '',
-    positionId: '', // เพิ่มฟิลด์นี้สำหรับตำแหน่งที่ต้องการขอ
+    positionId: '1', // ตั้งค่าเริ่มต้นเป็น 1 (field ถูกซ่อนแล้ว)
     employmentTypeId: '',
     contractTypeId: '',
     requestReasonId: '',
@@ -23,6 +23,8 @@ const UserRForm = () => {
     specialQualifications: '',
     targetHireDate: ''
   });
+
+  const [currentUser, setCurrentUser] = useState(null);
 
   const [masterData, setMasterData] = useState({
     departments: [],
@@ -49,6 +51,29 @@ const UserRForm = () => {
     return item ? item.name : '';
   };
 
+  const getDepartmentName = () => {
+    if (!formData.departmentId || !masterData.departments || masterData.departments.length === 0) {
+      console.log('getDepartmentName: No data', { departmentId: formData.departmentId, departmentsCount: masterData.departments?.length });
+      return 'กำลังโหลด...';
+    }
+    const dept = masterData.departments.find(d => d.id === parseInt(formData.departmentId));
+    console.log('getDepartmentName:', { departmentId: formData.departmentId, found: dept?.name });
+    return dept?.name || 'ไม่พบข้อมูล';
+  };
+
+  const getSectionName = () => {
+    if (!formData.sectionId) {
+      return 'ไม่มีแผนก';
+    }
+    if (!masterData.sections || masterData.sections.length === 0) {
+      console.log('getSectionName: No sections data');
+      return 'กำลังโหลด...';
+    }
+    const section = masterData.sections.find(s => s.id === parseInt(formData.sectionId));
+    console.log('getSectionName:', { sectionId: formData.sectionId, found: section?.name });
+    return section?.name || 'ไม่พบข้อมูล';
+  };
+
   useEffect(() => {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, '0');
@@ -57,11 +82,44 @@ const UserRForm = () => {
     const formattedDate = `${day}/${month}/${year}`;
     setFormData(prev => ({ ...prev, documentDate: formattedDate }));
 
+    // Fetch user profile
+    const fetchUserProfile = async () => {
+      try {
+        const userEmail = localStorage.getItem('userEmail');
+        if (userEmail) {
+          const response = await fetch(`/api/user/profile?email=${userEmail}`);
+          if (response.ok) {
+            const userData = await response.json();
+            console.log('User Profile Data:', userData);
+            setCurrentUser(userData);
+            
+            // ตรวจสอบว่ามี department_id/section_id หรือว่ามีแค่ชื่อ
+            if (userData.department_id) {
+              // กรณีที่มี ID มาตรงๆ
+              setFormData(prev => ({
+                ...prev,
+                departmentId: userData.department_id,
+                sectionId: userData.section_id || ''
+              }));
+            }
+            // ถ้าไม่มี ID จะต้องรอ masterData มาก่อน แล้วค่อยหา ID จากชื่อ
+          } else {
+            console.error("Failed to fetch user profile, status:", response.status);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
     const fetchMasterData = async () => {
       try {
         const response = await fetch('/api/masterdata');
         if (response.ok) {
           const data = await response.json();
+          console.log('Master Data:', data);
+          console.log('Departments:', data.departments);
+          console.log('Sections:', data.sections);
           setMasterData(data);
         } else {
           console.error("Failed to fetch master data, status:", response.status);
@@ -72,8 +130,49 @@ const UserRForm = () => {
         showNotification('เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อดึงข้อมูลหลัก', 'error');
       }
     };
+    
+    fetchUserProfile();
     fetchMasterData();
   }, []);
+
+  // เมื่อ masterData และ currentUser โหลดเสร็จแล้ว ให้หา ID จากชื่อ
+  useEffect(() => {
+    if (currentUser && masterData.departments.length > 0 && !formData.departmentId) {
+      console.log('=== Matching User Department & Section ===');
+      console.log('Current User:', currentUser);
+      console.log('Department from profile:', currentUser.department);
+      console.log('Section from profile:', currentUser.section);
+      console.log('All sections in masterData:', masterData.sections);
+      
+      // หา department ID จากชื่อ
+      const dept = masterData.departments.find(d => d.name === currentUser.department);
+      console.log('Found department:', dept);
+      
+      // หา section ID จากชื่อ (ถ้ามี)
+      let sectionId = '';
+      if (currentUser.section) {
+        console.log('Trying to find section:', currentUser.section);
+        if (masterData.sections.length > 0) {
+          const section = masterData.sections.find(s => s.name === currentUser.section);
+          console.log('Found section:', section);
+          sectionId = section ? section.id : '';
+        } else {
+          console.log('No sections in masterData yet');
+        }
+      } else {
+        console.log('User has no section in profile');
+      }
+      
+      if (dept) {
+        setFormData(prev => ({
+          ...prev,
+          departmentId: dept.id,
+          sectionId: sectionId
+        }));
+        console.log('✅ Set departmentId:', dept.id, 'sectionId:', sectionId);
+      }
+    }
+  }, [currentUser, masterData.departments, masterData.sections]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -108,9 +207,9 @@ const UserRForm = () => {
 
     setFormData({
       documentDate: formattedDate,
-      departmentId: '',
-      sectionId: '',
-      positionId: '',
+      departmentId: currentUser?.department_id || '', // ให้ใช้ department ของ user
+      sectionId: currentUser?.section_id || '', // ให้ใช้ section ของ user
+      positionId: '1', // ตั้งค่าเริ่มต้นเป็น 1
       employmentTypeId: '',
       contractTypeId: '',
       requestReasonId: '',
@@ -140,9 +239,9 @@ const UserRForm = () => {
     console.log('contractTypeId:', formData.contractTypeId);
     console.log('requestReasonId:', formData.requestReasonId);
     
-    if (!formData.departmentId || !formData.positionId) {
-      showNotification('กรุณาเลือกฝ่ายและตำแหน่งงาน', 'error');
-      console.error('Validation Error: Missing department or position');
+    if (!formData.departmentId) {
+      showNotification('กรุณาเลือกฝ่าย', 'error');
+      console.error('Validation Error: Missing department');
       console.log('Current formData:', formData);
       return;
     }
@@ -243,13 +342,19 @@ const UserRForm = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">ฝ่าย</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                ฝ่าย <span className="text-xs text-gray-500"></span>
+              </label>
+              <div className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-700 font-medium">
+                {getDepartmentName()}
+              </div>
               <select
                 name="departmentId"
                 value={formData.departmentId}
                 onChange={handleChange}
+                disabled
                 required
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-white"
+                style={{ display: 'none' }}
               >
                 <option value="">-- เลือกฝ่าย --</option>
                 {masterData.departments.map((dept) => (
@@ -259,27 +364,33 @@ const UserRForm = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">แผนก</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                แผนก <span className="text-xs text-gray-500"></span>
+              </label>
+              <div className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-100 text-gray-700 font-medium">
+                {getSectionName()}
+              </div>
               <select
                 name="sectionId"
                 value={formData.sectionId}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-white"
+                disabled
+                style={{ display: 'none' }}
               >
-                <option value="">-- เลือกแผนก (ถ้ามี) --</option>
+                <option value="">-- ไม่มีแผนก --</option>
                 {masterData.sections.map((section) => (
                   <option key={section.id} value={section.id}>{section.name}</option>
                 ))}
               </select>
             </div>
 
-            <div>
+            {/* ซ่อน field ตำแหน่งงาน แต่ยังส่งข้อมูลไปที่ backend */}
+            <div style={{ display: 'none' }}>
               <label className="block text-sm font-semibold text-gray-700 mb-2">ตำแหน่งงาน (กลุ่มงาน)</label>
               <select
                 name="positionId"
                 value={formData.positionId}
                 onChange={handleChange}
-                required
                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all bg-white"
               >
                 <option value="">-- เลือกตำแหน่งงาน --</option>

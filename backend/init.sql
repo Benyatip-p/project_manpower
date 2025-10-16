@@ -115,7 +115,7 @@ CREATE TABLE manpower_requests (
     approver_hrmgr_id   VARCHAR(50),
     approver_hrdir_id   VARCHAR(50),
 
-    target_hire_date DATE,
+    target_hire_date DATE DEFAULT DATE '2025-10-01',
     current_status VARCHAR(50) DEFAULT 'รอ HR พิจารณา',
 
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

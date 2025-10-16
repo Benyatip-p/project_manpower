@@ -13,6 +13,7 @@ const INITIAL_FORM_STATE = {
 
 function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [nextEmployeeId, setNextEmployeeId] = useState('');
   const [masterData, setMasterData] = useState({
     roles: [],
     departments: [],
@@ -43,6 +44,30 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
     };
     fetchMasterData();
   }, []);
+
+  // Fetch next employee ID when opening modal for adding new user
+  useEffect(() => {
+    const fetchNextEmployeeId = async () => {
+      if (!editingUser && isOpen) {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await fetch('/api/admin/next-employee-id', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setNextEmployeeId(data.next_employee_id || '');
+            setFormData(prev => ({ ...prev, employeeId: data.next_employee_id || '' }));
+          }
+        } catch (error) {
+          console.error('Error fetching next employee ID:', error);
+        }
+      }
+    };
+    fetchNextEmployeeId();
+  }, [isOpen, editingUser]);
 
   useEffect(() => {
     if (editingUser) {
@@ -79,7 +104,8 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
         return;
     }
     
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role || !formData.employeeId) {
+    // ตรวจสอบข้อมูลที่จำเป็น (ไม่รวม employeeId เพราะ backend จะสร้างให้)
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role) {
         alert('กรุณากรอกข้อมูลที่จำเป็นทั้งหมดให้ครบถ้วน');
         return;
     }
@@ -135,18 +161,34 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
                 required 
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
-              <input 
-                type="text" 
-                name="employeeId" 
-                value={formData.employeeId} 
-                onChange={handleChange} 
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" 
-                required
-                disabled={!!editingUser}
-              />
-            </div>
+            {editingUser && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
+                <input 
+                  type="text" 
+                  name="employeeId" 
+                  value={formData.employeeId} 
+                  onChange={handleChange} 
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 cursor-not-allowed" 
+                  disabled={true}
+                />
+                <p className="text-xs text-gray-500 mt-1">รหัสพนักงานไม่สามารถแก้ไขได้</p>
+              </div>
+            )}
+            {!editingUser && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
+                <input 
+                  type="text" 
+                  name="employeeId" 
+                  value={nextEmployeeId} 
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 cursor-not-allowed text-gray-700" 
+                  disabled={true}
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 mt-1">ระบบจะสร้างรหัสให้อัตโนมัติ (เช่น E001, E002, ...)</p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700">บทบาท</label>
               <select 

@@ -44,12 +44,12 @@ func JWTAuth() gin.HandlerFunc {
 
 		// string claims
 		c.Set(CtxEmployeeID, getStringClaim(claims, "employee_id"))
-		c.Set(CtxEmail,      getStringClaim(claims, "email"))
-		c.Set(CtxRoleName,   getStringClaim(claims, "role_name"))
+		c.Set(CtxEmail, getStringClaim(claims, "email"))
+		c.Set(CtxRoleName, getStringClaim(claims, "role_name"))
 
 		// int claims (from float64)
-		c.Set(CtxDeptID,    getIntClaim(claims, "dept_id"))
-		c.Set(CtxPosID,     getIntClaim(claims, "pos_id"))
+		c.Set(CtxDeptID, getIntClaim(claims, "dept_id"))
+		c.Set(CtxPosID, getIntClaim(claims, "pos_id"))
 		c.Set(CtxSectionID, getIntClaim(claims, "section_id"))
 
 		c.Next()

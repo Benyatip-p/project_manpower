@@ -38,7 +38,7 @@ func CreateEmployeeHandler(c *gin.Context) {
 
 func UpdateEmployeeHandler(c *gin.Context) {
 	employeeID := c.Param("id")
-	
+
 	var req models.UpdateEmployeeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload", "details": err.Error()})
@@ -77,5 +77,18 @@ func DeleteEmployeeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Employee deleted successfully!",
+	})
+}
+
+// GetNextEmployeeIDHandler ดึงรหัสพนักงานถัดไปที่จะถูกสร้าง
+func GetNextEmployeeIDHandler(c *gin.Context) {
+	nextID, err := services.GenerateEmployeeID()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate employee ID"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"next_employee_id": nextID,
 	})
 }

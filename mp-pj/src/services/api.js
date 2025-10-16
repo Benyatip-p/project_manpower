@@ -59,8 +59,16 @@ export async function decideManpowerRequest(id, action, notes = "") {
 }
 
 // ฟังก์ชันดึงข้อมูล Dashboard
-export async function getDashboardOverview() {
-  const res = await fetch(`${BASE}/dashboard/overview`, {
+export async function getDashboardOverview(month = '', year = '') {
+  // สร้าง query string ถ้ามีการเลือกเดือน/ปี
+  const params = new URLSearchParams();
+  if (month) params.append('month', month);
+  if (year) params.append('year', year);
+  
+  const queryString = params.toString();
+  const url = queryString ? `${BASE}/dashboard/overview?${queryString}` : `${BASE}/dashboard/overview`;
+  
+  const res = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
       ...authHeaders(),

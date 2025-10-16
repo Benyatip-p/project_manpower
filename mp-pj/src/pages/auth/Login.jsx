@@ -33,9 +33,11 @@ const Login = () => {
         return;
       }
 
+      // Clear localStorage ก่อน login เพื่อให้แน่ใจว่าไม่มี token เก่า
+      localStorage.clear();
+      
       const { token, role, email: userEmail } = data; 
-      localStorage.setItem('jwt_token', token);
-      localStorage.setItem('token', data.token);
+      localStorage.setItem('token', token);
       localStorage.setItem('user_role', role);
       localStorage.setItem('userEmail', userEmail); 
 

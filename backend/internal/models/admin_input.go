@@ -8,7 +8,7 @@ type NewEmployeeRequest struct {
 	Role       string `json:"role" binding:"required"`
 	Department string `json:"department"`
 	Position   string `json:"position"`
-	EmployeeID string `json:"employeeId" binding:"required"`
+	EmployeeID string `json:"employeeId"` // ไม่บังคับ - ถ้าไม่ส่งมาจะ auto-generate
 }
 
 type UpdateEmployeeRequest struct {

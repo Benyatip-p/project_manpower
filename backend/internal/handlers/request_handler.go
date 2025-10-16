@@ -63,6 +63,7 @@ func GetManpowerRequestsHandler(c *gin.Context) {
 	role := c.GetString(mw.CtxRoleName)
 	deptID := c.GetInt(mw.CtxDeptID)
 	secID := c.GetInt(mw.CtxSectionID)
+	posID := c.GetInt(mw.CtxPosID)
 
 	baseSelect := `
 SELECT
@@ -114,11 +115,25 @@ LEFT JOIN education_levels edu ON mr.education_level_id= edu.edu_id
 		args  []interface{}
 	)
 
-	if role == "Admin" || role == "Approve" {
-		// เห็นทั้งหมด
+	// ตรวจสอบว่าเป็น HR department (dept_id = 2) หรือไม่
+	isHRDept := deptID == 2
+
+	// pos_id: 1 = Manager, 8 = Director, 2 = Recruiter
+	isManager := posID == 1
+	isDirector := posID == 8
+
+	// HR roles (Recruiter, HR Manager, HR Director) เห็นรายการทั้งหมด
+	if isHRDept {
 		query = baseSelect + " ORDER BY mr.created_at DESC"
+	} else if role == "Admin" {
+		// Admin เห็นทั้งหมด
+		query = baseSelect + " ORDER BY mr.created_at DESC"
+	} else if isManager || isDirector {
+		// Manager และ Director ที่ไม่ใช่ HR: เห็นเฉพาะ department ของตัวเอง
+		query = baseSelect + " WHERE mr.requesting_dept_id = $1 ORDER BY mr.created_at DESC"
+		args = append(args, deptID)
 	} else {
-		// ผู้ใช้ทั่วไป: ถ้ามี section_id ให้กรอง section ก่อน ไม่งั้นกรองตาม department
+		// ผู้ใช้ทั่วไป (User): ถ้ามี section_id ให้กรอง section ก่อน ไม่งั้นกรองตาม department
 		if secID > 0 {
 			query = baseSelect + " WHERE mr.requesting_section_id = $1 ORDER BY mr.created_at DESC"
 			args = append(args, secID)
@@ -549,3 +564,63 @@ func generateDocNo(id int) string {
 // 		"status":     "DRAFT",
 // 	})
 // }
+
+// DeleteManpowerRequestHandler godoc
+// @Summary      Delete a manpower request
+// @Description  ลบคำขอพนักงาน (เฉพาะเจ้าของคำขอหรือ Admin)
+// @Tags         Requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Request ID"
+// @Success      200  {object}  map[string]interface{}  "success message"
+// @Failure      403  {object}  map[string]string       "forbidden"
+// @Failure      404  {object}  map[string]string       "not found"
+// @Failure      500  {object}  map[string]string       "internal error"
+// @Router       /user/requests/{id} [delete]
+func DeleteManpowerRequestHandler(c *gin.Context) {
+	requestID := c.Param("id")
+	employeeID := c.GetString(mw.CtxEmployeeID)
+	role := c.GetString(mw.CtxRoleName)
+
+	// ตรวจสอบว่าคำขอมีอยู่จริงและเป็นของ user นี้หรือไม่
+	var ownerID string
+	var overallStatus string
+	checkQuery := `SELECT employee_id, overall_status FROM manpower_requests WHERE request_id = $1`
+	err := database.DB.QueryRow(checkQuery, requestID).Scan(&ownerID, &overallStatus)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Request not found"})
+			return
+		}
+		log.Printf("Error checking request ownership: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	// ตรวจสอบสิทธิ์: ต้องเป็นเจ้าของคำขอหรือเป็น Admin
+	if ownerID != employeeID && role != "Admin" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to delete this request"})
+		return
+	}
+
+	// ป้องกันการลบคำขอที่อนุมัติแล้ว
+	if overallStatus == "APPROVED" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete approved requests"})
+		return
+	}
+
+	// ลบคำขอ
+	deleteQuery := `DELETE FROM manpower_requests WHERE request_id = $1`
+	_, err = database.DB.Exec(deleteQuery, requestID)
+	if err != nil {
+		log.Printf("Error deleting request: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Request deleted successfully",
+	})
+}

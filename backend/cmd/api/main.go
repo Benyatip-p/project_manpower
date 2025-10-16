@@ -60,18 +60,18 @@ func main() {
 
 		api.GET("/user/profile", handlers.GetUserProfileHandler)
 		api.GET("/masterdata", handlers.GetMasterDataHandler)
-		api.GET("/dashboard/overview", handlers.GetDashboardOverview)
+
 		protected := api.Group("/")
 		protected.Use(middlewares.JWTAuth())
 		{
-			// protected.GET("/user/profile", handlers.GetUserProfileHandler)
-			// protected.GET("/masterdata", handlers.GetMasterDataHandler)
+			// Dashboard (ต้องใช้ JWT)
+			protected.GET("/dashboard/overview", handlers.GetDashboardOverview)
 
 			user := protected.Group("/user")
 			{
 				user.GET("/requests", handlers.GetManpowerRequestsHandler)
 				user.GET("/requests/:id", handlers.GetManpowerRequestByIDHandler)
-				// user.POST("/requests", handlers.CreateManpowerRequestHandler)
+				user.DELETE("/requests/:id", handlers.DeleteManpowerRequestHandler)
 
 				user.POST("/requests/submit", handlers.CreateAndSubmitManpowerRequestHandler)
 				user.POST("/requests/:id/decide", handlers.DecideManpowerRequestHandler)
@@ -86,6 +86,7 @@ func main() {
 			admin := protected.Group("/admin")
 			{
 				admin.GET("/employees", handlers.GetEmployeesHandler)
+				admin.GET("/next-employee-id", handlers.GetNextEmployeeIDHandler)
 				admin.POST("/employees", handlers.CreateEmployeeHandler)
 				admin.PUT("/employees/:id", handlers.UpdateEmployeeHandler)
 				admin.DELETE("/employees/:id", handlers.DeleteEmployeeHandler)

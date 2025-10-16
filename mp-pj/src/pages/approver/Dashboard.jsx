@@ -34,6 +34,37 @@ function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // State สำหรับ filter เดือน/ปี
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  
+  // สร้างรายการเดือน
+  const months = [
+    { value: '', label: 'ทุกเดือน' },
+    { value: '01', label: 'มกราคม' },
+    { value: '02', label: 'กุมภาพันธ์' },
+    { value: '03', label: 'มีนาคม' },
+    { value: '04', label: 'เมษายน' },
+    { value: '05', label: 'พฤษภาคม' },
+    { value: '06', label: 'มิถุนายน' },
+    { value: '07', label: 'กรกฎาคม' },
+    { value: '08', label: 'สิงหาคม' },
+    { value: '09', label: 'กันยายน' },
+    { value: '10', label: 'ตุลาคม' },
+    { value: '11', label: 'พฤศจิกายน' },
+    { value: '12', label: 'ธันวาคม' },
+  ];
+  
+  // สร้างรายการปี (ย้อนหลัง 5 ปี)
+  const currentYear = new Date().getFullYear();
+  const years = [
+    { value: '', label: 'ทุกปี' },
+    ...Array.from({ length: 5 }, (_, i) => ({
+      value: String(currentYear - i),
+      label: String(currentYear - i + 543), // แสดงเป็นพ.ศ.
+    })),
+  ];
 
   useEffect(() => {
     const getData = async () => {
@@ -41,8 +72,8 @@ function Dashboard() {
         setIsLoading(true);
         setError(null);
         
-        // เรียก API จริง
-        const apiResponse = await getDashboardOverview();
+        // เรียก API พร้อม query parameters
+        const apiResponse = await getDashboardOverview(selectedMonth, selectedYear);
         
         // แปลง API response เป็นรูปแบบที่ UI ต้องการ
         const transformedData = {
@@ -80,7 +111,7 @@ function Dashboard() {
     };
 
     getData();
-  }, []);
+  }, [selectedMonth, selectedYear]); // ทำงานใหม่เมื่อเปลี่ยนเดือน/ปี
 
   const today = new Date();
   const dateString = today.toLocaleDateString('th-TH', {
@@ -157,6 +188,39 @@ function Dashboard() {
 
             {/* Line Chart */}
            <div className='chart-container'>
+              {/* Dropdown สำหรับเลือกเดือน/ปี */}
+              <div className="mb-4 flex gap-4 justify-center">
+                <div>
+                  <label className="mr-2 text-sm font-medium text-gray-700">เดือน:</label>
+                  <select 
+                    value={selectedMonth} 
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {months.map(month => (
+                      <option key={month.value} value={month.value}>
+                        {month.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="mr-2 text-sm font-medium text-gray-700">ปี:</label>
+                  <select 
+                    value={selectedYear} 
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {years.map(year => (
+                      <option key={year.value} value={year.value}>
+                        {year.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={dashboardData.lineData} isAnimationActive={false}>
                   <CartesianGrid strokeDasharray="3 3" />
