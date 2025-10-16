@@ -583,6 +583,8 @@ func DeleteManpowerRequestHandler(c *gin.Context) {
 	employeeID := c.GetString(mw.CtxEmployeeID)
 	role := c.GetString(mw.CtxRoleName)
 
+	log.Printf("Delete request attempt: requestID=%s, employeeID=%s, role=%s", requestID, employeeID, role)
+
 	// ตรวจสอบว่าคำขอมีอยู่จริงและเป็นของ user นี้หรือไม่
 	var ownerID string
 	var overallStatus string
@@ -590,6 +592,7 @@ func DeleteManpowerRequestHandler(c *gin.Context) {
 	err := database.DB.QueryRow(checkQuery, requestID).Scan(&ownerID, &overallStatus)
 	if err != nil {
 		if err == sql.ErrNoRows {
+			log.Printf("Request not found: requestID=%s", requestID)
 			c.JSON(http.StatusNotFound, gin.H{"error": "Request not found"})
 			return
 		}
@@ -598,16 +601,29 @@ func DeleteManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// ตรวจสอบสิทธิ์: ต้องเป็นเจ้าของคำขอหรือเป็น Admin
-	if ownerID != employeeID && role != "Admin" {
+	log.Printf("Request found: ownerID=%s, overallStatus=%s", ownerID, overallStatus)
+
+	// ตรวจสอบสิทธิ์: ต้องเป็นเจ้าของคำขอ หรือเป็น Admin หรือเป็น Approver
+	if ownerID != employeeID && role != "Admin" && role != "Approve" {
+		log.Printf("Delete permission denied: ownerID=%s, employeeID=%s, role=%s", ownerID, employeeID, role)
 		c.JSON(http.StatusForbidden, gin.H{"error": "You don't have permission to delete this request"})
 		return
 	}
 
-	// ป้องกันการลบคำขอที่อนุมัติแล้ว
-	if overallStatus == "APPROVED" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete approved requests"})
-		return
+	// ผู้ใช้สามารถลบคำขอของตัวเองได้ในสถานะที่เหมาะสม
+	// แต่ห้ามลบคำขอที่อนุมัติแล้ว (APPROVED) หรือเสร็จสมบูรณ์แล้ว
+	if ownerID == employeeID {
+		if overallStatus == "APPROVED" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete approved requests"})
+			return
+		}
+		// เจ้าของคำขอสามารถลบได้ในสถานะอื่นๆ (DRAFT, SUBMITTED, IN_PROGRESS, etc.)
+	} else if role == "Admin" || role == "Approve" {
+		// Admin และ Approver สามารถลบได้ทุกสถานะ ยกเว้น APPROVED ที่เสร็จสมบูรณ์แล้ว
+		if overallStatus == "APPROVED" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete approved requests"})
+			return
+		}
 	}
 
 	// ลบคำขอ
