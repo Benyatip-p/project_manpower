@@ -1,4 +1,4 @@
-y ckage handlers
+package handlers
 
 import (
 	"mantest/backend/internal/models"

@@ -197,34 +197,11 @@ VALUES
 
 INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, section_id, role_id)
 VALUES
-('E101', 'สมศักดิ์', 'ขยันยิ่ง', 'som@email.com', '1234',
- (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
- (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
- (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
- 3),
 
-('E102', 'สมหญิง', 'รักงาน', 'somying@email.com', '1234',
+ ('E101', 'ชาวี', 'ชีวา', 'ceo@email.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
- (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
- (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
- 3),
-
-('E103', 'มานี', 'มีนา', 'manee@email.com', '1234',
- (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
- (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
- (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
- 3),
-
-('E104', 'เอกชัย', 'เจริญสุข', 'ekachai@email.com', '1234',
- (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
- (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
- (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
- 3),
-
-('E105', 'วิทวัส', 'เก่งกาจ', 'witwat@email.com', '1234',
- (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
- (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายเทคโนโลยีสารสนเทศ'),
- (SELECT section_id FROM sections WHERE section_name='แผนกไอที'),
+ (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบริหาร'),
+ (SELECT section_id FROM sections WHERE section_name='แผนกธุรการ'),
  3);
 
 -- -- ========== 1 ==========
