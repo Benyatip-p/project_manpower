@@ -328,13 +328,28 @@ const Approve = () => {
   }, [currentUserRole]); // dependency: เมื่อ role เปลี่ยน ให้สร้างฟังก์ชันใหม่
 
    const filteredDocuments = documents.filter(doc => {
-    // แสดงทุกรายการ แต่กรองตามฟิลเตอร์ค้นหาเท่านั้น
-    
     // กรองตามฟิลเตอร์สถานะที่ผู้ใช้เลือก
-    const statusMatch = filterStatus === '' || 
-      doc.managerStatus === filterStatus || 
-      doc.hrStatus === filterStatus || 
-      doc.ceoStatus === filterStatus;
+    let statusMatch = true;
+    
+    if (filterStatus === 'ผ่านการอนุมัติ') {
+      // ผ่านการอนุมัติ: ทั้ง 3 คอลัมน์ต้องเป็น 'ได้รับการอนุมัติ'
+      statusMatch = doc.managerStatus === 'ได้รับการอนุมัติ' && 
+                    doc.hrStatus === 'ได้รับการอนุมัติ' && 
+                    doc.ceoStatus === 'ได้รับการอนุมัติ';
+    } else if (filterStatus === 'รออนุมัติ') {
+      // รออนุมัติ: แสดงเฉพาะเอกสารที่รอ role ปัจจุบันตัดสินใจ
+      statusMatch = canApproveDocument(doc);
+    } else if (filterStatus === 'ไม่อนุมัติ') {
+      // ไม่อนุมัติ: คอลัมน์ใดคอลัมน์หนึ่งเป็น 'ไม่อนุมัติ'
+      statusMatch = doc.managerStatus === 'ไม่อนุมัติ' || 
+                    doc.hrStatus === 'ไม่อนุมัติ' || 
+                    doc.ceoStatus === 'ไม่อนุมัติ';
+    } else if (filterStatus !== '') {
+      // กรณีอื่นๆ: ค้นหาตามสถานะปกติ (เช่น ค้นหาคำเฉพาะ)
+      statusMatch = doc.managerStatus === filterStatus || 
+                    doc.hrStatus === filterStatus || 
+                    doc.ceoStatus === filterStatus;
+    }
     
     // กรองตามเลขที่เอกสาร
     const searchMatch = filterDocNumber === '' || 
@@ -345,6 +360,7 @@ const Approve = () => {
 
   console.log("=== Filtered Documents ===");
   console.log("Current User Role:", currentUserRole);
+  console.log("Filter Status:", filterStatus);
   console.log("Total documents after filter:", filteredDocuments.length);
   console.log("Documents that can be approved:", filteredDocuments.filter(canApproveDocument).length);
 

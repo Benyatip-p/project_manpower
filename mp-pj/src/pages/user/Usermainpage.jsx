@@ -243,10 +243,49 @@ const Usermainpage = () => {
   };
 
   const filteredDocuments = documents.filter(doc => {
-    const statusMatch = filterStatus === '' || 
-      doc.managerStatus === filterStatus || 
-      doc.hrStatus === filterStatus || 
-      doc.ceoStatus === filterStatus;
+    // กรองตามฟิลเตอร์สถานะที่ผู้ใช้เลือก (ใช้ inputStatus โดยตรง ไม่ต้องรอกด Search)
+    let statusMatch = true;
+    
+    console.log('=== Filter Debug ===');
+    console.log('inputStatus:', inputStatus); // เปลี่ยนจาก filterStatus เป็น inputStatus
+    console.log('filterStatus:', filterStatus);
+    console.log('Doc:', doc.documentNumber);
+    console.log('managerStatus:', doc.managerStatus);
+    console.log('hrStatus:', doc.hrStatus);
+    console.log('ceoStatus:', doc.ceoStatus);
+    
+    // ใช้ inputStatus แทน filterStatus เพื่อให้ filter ทำงานทันทีเมื่อเลือก dropdown
+    const currentFilterStatus = inputStatus || filterStatus;
+    
+    if (currentFilterStatus === 'ผ่านการอนุมัติ') {
+      // ผ่านการอนุมัติ: ทั้ง 3 คอลัมน์ต้องเป็น 'ได้รับการอนุมัติ'
+      statusMatch = doc.managerStatus === 'ได้รับการอนุมัติ' && 
+                    doc.hrStatus === 'ได้รับการอนุมัติ' && 
+                    doc.ceoStatus === 'ได้รับการอนุมัติ';
+      console.log('ผ่านการอนุมัติ check:', statusMatch);
+    } else if (currentFilterStatus === 'รออนุมัติ') {
+      // รออนุมัติ: แสดงเอกสารที่ยังไม่ได้รับการอนุมัติครบทั้ง 3 คอลัมน์
+      // และยังไม่ถูกปฏิเสธ
+      const isApproved = doc.managerStatus === 'ได้รับการอนุมัติ' && 
+                        doc.hrStatus === 'ได้รับการอนุมัติ' && 
+                        doc.ceoStatus === 'ได้รับการอนุมัติ';
+      const isRejected = doc.managerStatus === 'ไม่อนุมัติ' || 
+                        doc.hrStatus === 'ไม่อนุมัติ' || 
+                        doc.ceoStatus === 'ไม่อนุมัติ';
+      statusMatch = !isApproved && !isRejected;
+      console.log('รออนุมัติ check:', statusMatch);
+    } else if (currentFilterStatus === 'ไม่อนุมัติ') {
+      // ไม่อนุมัติ: คอลัมน์ใดคอลัมน์หนึ่งเป็น 'ไม่อนุมัติ'
+      statusMatch = doc.managerStatus === 'ไม่อนุมัติ' || 
+                    doc.hrStatus === 'ไม่อนุมัติ' || 
+                    doc.ceoStatus === 'ไม่อนุมัติ';
+      console.log('ไม่อนุมัติ check:', statusMatch);
+    } else if (currentFilterStatus !== '') {
+      // กรณีอื่นๆ: ค้นหาตามสถานะปกติ
+      statusMatch = doc.managerStatus === currentFilterStatus || 
+                    doc.hrStatus === currentFilterStatus || 
+                    doc.ceoStatus === currentFilterStatus;
+    }
     
     const searchMatch = filterDocNumber === '' || 
       doc.documentNumber.toLowerCase().includes(filterDocNumber.toLowerCase());
