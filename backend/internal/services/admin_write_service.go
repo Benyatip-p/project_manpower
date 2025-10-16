@@ -12,7 +12,6 @@ import (
 
 
 func CreateNewEmployee(req *models.NewEmployeeRequest) error {
-	// Normalize inputs
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 	password := strings.TrimSpace(req.Password)
 	roleName := strings.ToUpper(strings.TrimSpace(req.Role))
@@ -51,7 +50,6 @@ func CreateNewEmployee(req *models.NewEmployeeRequest) error {
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
 
-	// Set default status if not provided
 	status := strings.TrimSpace(req.Status)
 	if status == "" {
 		status = "Active"
@@ -81,7 +79,6 @@ func CreateNewEmployee(req *models.NewEmployeeRequest) error {
 }
 
 func UpdateEmployee(employeeID string, req *models.NewEmployeeRequest) error {
-	// Normalize inputs
 	roleName := strings.ToUpper(strings.TrimSpace(req.Role))
 	email := strings.ToLower(strings.TrimSpace(req.Email))
 	passwordTrim := strings.TrimSpace(req.Password)

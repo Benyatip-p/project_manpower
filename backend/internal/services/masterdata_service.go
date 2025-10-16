@@ -134,6 +134,7 @@ func GetIDByName(tableName, name string) (int, error) {
 		return 0, errors.New("invalid lookup table name")
 	}
 
+	// คืองการเปรียบเทียบชื่อแบบไม่สนใจตัวพิมพ์เล็ก-ใหญ่
 	query := fmt.Sprintf("SELECT %s FROM %s WHERE UPPER(%s) = UPPER($1)", idCol, tableAlias, nameCol)
 	
 	var id int
