@@ -9,6 +9,7 @@ type NewEmployeeRequest struct {
 	Department string `json:"department"`
 	Position   string `json:"position"`
 	EmployeeID string `json:"employeeId" binding:"required"`
+	Status     string `json:"status"`
 }
 
 // UpdateEmployeeRequest: same shape as NewEmployeeRequest but Password is optional for updates
@@ -21,4 +22,5 @@ type UpdateEmployeeRequest struct {
 	Department string `json:"department"`
 	Position   string `json:"position"`
 	EmployeeID string `json:"employeeId" binding:"required"`
+	Status     string `json:"status"`
 }

@@ -19,21 +19,21 @@ func Authenticate(email, password string) (string, string, string, error) {
 	password = strings.TrimSpace(password)
 
 	var (
-		employeeID, storedPassword, roleName string
-		deptID, posID                         sql.NullInt64
-		sectionID                             sql.NullInt64
+		employeeID, storedPassword, roleName, userStatus string
+		deptID, posID                                   sql.NullInt64
+		sectionID                                       sql.NullInt64
 	)
 
 	query := `
-	       SELECT e.employee_id, e.password, r.role_name,
-	              e.dept_id, e.pos_id, e.section_id
-	       FROM employees e
-	       JOIN roles r ON e.role_id = r.role_id
-	       WHERE LOWER(e.email) = LOWER($1) AND e.status = 'Active'
-	   `
+		       SELECT e.employee_id, e.password, r.role_name,
+		              e.dept_id, e.pos_id, e.section_id, e.status
+		       FROM employees e
+		       JOIN roles r ON e.role_id = r.role_id
+		       WHERE LOWER(e.email) = LOWER($1) AND e.status = 'Active'
+		   `
 	err := database.DB.QueryRow(query, email).Scan(
 		&employeeID, &storedPassword, &roleName,
-		&deptID, &posID, &sectionID,
+		&deptID, &posID, &sectionID, &userStatus,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -47,6 +47,12 @@ func Authenticate(email, password string) (string, string, string, error) {
 	if storedPassword != password {
 		log.Printf("Authentication failed for email %s: incorrect password", email)
 		return "", "", "", errors.New("authentication failed: invalid credentials")
+	}
+
+	// Check if user account is active
+	if userStatus != "Active" {
+		log.Printf("Authentication failed for email %s: account is %s", email, userStatus)
+		return "", "", "", errors.New("authentication failed: account is not active")
 	}
 
 	// Normalize email to lowercase for token claim consistency

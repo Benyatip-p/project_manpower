@@ -92,6 +92,7 @@ func main() {
 				admin.POST("/employees", handlers.CreateEmployeeHandler)
 				admin.PUT("/employees/:employeeID", handlers.UpdateEmployeeHandler)
 				admin.DELETE("/employees/:employeeID", handlers.DeleteEmployeeHandler)
+				admin.PATCH("/employees/:employeeID/status", handlers.UpdateEmployeeStatusHandler)
 			}
 		}
 	}

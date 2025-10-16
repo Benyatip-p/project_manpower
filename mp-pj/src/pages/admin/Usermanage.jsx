@@ -11,10 +11,11 @@ function UserManage() {
   const [users, setUsers] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [userToDelete, setUserToDelete] = useState(null); 
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const [notification, setNotification] = useState({
     show: false,
@@ -49,11 +50,14 @@ function UserManage() {
 
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.map((user) => ({
+        const processedUsers = data.map((user) => {
+          return {
             ...user,
             // ใช้ employeeId เป็น key สำหรับการค้นหา/จัดการใน frontend
             id: user.employeeId,
-        })));
+          };
+        });
+        setUsers(processedUsers);
       } else {
         console.error("Failed to fetch user list, status:", response.status);
       }
@@ -66,21 +70,35 @@ function UserManage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []); 
+  }, []);
+
+  // รีเซ็ตหน้าเมื่อมีการเปลี่ยน Filter
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const filteredUsers = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return users;
-    }
-    return users.filter(user => {
+    let filtered = users;
+
+    // Apply search filter
+    if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-      const employeeId = user.employeeId.toLowerCase();
-      const email = user.email.toLowerCase();
-      
-      return fullName.includes(searchLower) || employeeId.includes(searchLower) || email.includes(searchLower);
-    });
-  }, [users, searchTerm]);
+      filtered = filtered.filter(user => {
+        const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+        const employeeId = user.employeeId.toLowerCase();
+        const email = user.email.toLowerCase();
+
+        return fullName.includes(searchLower) || employeeId.includes(searchLower) || email.includes(searchLower);
+      });
+    }
+
+    // Apply status filter
+    if (statusFilter) {
+      filtered = filtered.filter(user => user.status === statusFilter);
+    }
+
+    return filtered;
+  }, [users, searchTerm, statusFilter]);
 
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
 
@@ -100,6 +118,7 @@ function UserManage() {
 
   const handleClearSearch = () => {
     setSearchTerm('');
+    setStatusFilter('');
     setCurrentPage(1);
   };
 
@@ -113,7 +132,44 @@ function UserManage() {
   // เปลี่ยนไปใช้ employeeId
   const handleDeleteUser = (employeeId) => {
     const user = users.find(u => u.id === employeeId);
-    setUserToDelete(user); 
+    setUserToDelete(user);
+  };
+
+  // Handle status toggle
+  const handleStatusToggle = async (employeeId, currentStatus) => {
+    // Handle null/undefined status
+    const safeCurrentStatus = currentStatus ?? 'Active';
+    const newStatus = safeCurrentStatus === 'Active' ? 'Inactive' : 'Active';
+
+
+    try {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) {
+        showNotification('ไม่มีสิทธิ์การเข้าถึง', 'error');
+        return;
+      }
+
+      const response = await fetch(`/api/admin/employees/${employeeId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        showNotification(`เปลี่ยนสถานะผู้ใช้เป็น ${newStatus === 'Active' ? 'ใช้งาน' : 'ไม่ใช้งาน'} สำเร็จ`, 'success');
+        // Refresh the user list immediately to show updated status
+        await fetchUsers();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        showNotification(`เปลี่ยนสถานะไม่สำเร็จ: ${errorData.error || 'Unknown error'}`, 'error');
+      }
+    } catch (error) {
+      console.error('Status toggle error:', error);
+      showNotification('เกิดข้อผิดพลาดในการเปลี่ยนสถานะ', 'error');
+    }
   };
 
   // อัปเดต: ใช้ API ในการลบ
@@ -160,10 +216,12 @@ function UserManage() {
         firstName: userData.firstName,
         lastName: userData.lastName,
         email: userData.email,
-        role: userData.role, 
+        role: userData.role,
         department: userData.department,
         position: userData.position,
+        status: userData.status || 'Active',
     };
+
     
     // ส่งรหัสผ่านก็ต่อเมื่อมีการกรอก (กรณีเพิ่มผู้ใช้ใหม่) หรือมีการเปลี่ยนแปลง (กรณีแก้ไข)
     if (userData.password) {
@@ -262,7 +320,7 @@ function UserManage() {
         </div>
         <hr className="border-t border-gray-300 mb-8" />
 
-        <div className="mb-6 flex">
+        <div className="mb-6 flex flex-wrap gap-4">
           <div className="relative w-full sm:w-auto">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -272,7 +330,7 @@ function UserManage() {
               onChange={handleSearchChange}
               className="pl-10 pr-10 py-2 border-2 border-gray-300 rounded-md w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {searchTerm && (
+            {(searchTerm || statusFilter) && (
               <button
                 onClick={handleClearSearch}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
@@ -280,6 +338,21 @@ function UserManage() {
                 <XIcon className="w-5 h-5" />
               </button>
             )}
+          </div>
+
+          <div className="w-full sm:w-auto">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-4 py-2 border-2 border-gray-300 rounded-md w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">สถานะทั้งหมด</option>
+              <option value="Active">ใช้งาน</option>
+              <option value="Inactive">ไม่ใช้งาน</option>
+            </select>
           </div>
         </div>
 
@@ -302,6 +375,7 @@ function UserManage() {
                             <th className="px-6 py-3 text-left">นามสกุล</th>
                             <th className="px-6 py-3 text-left">Email</th>
                             <th className="px-6 py-3 text-center">รหัสผ่าน</th>
+                            <th className="px-6 py-3 text-center">สถานะ</th>
                             <th className="px-6 py-3 text-center">จัดการ</th>
                         </tr>
                         </thead>
@@ -314,11 +388,12 @@ function UserManage() {
                                 user={user}
                                 onEdit={handleEditUser} // ส่ง employeeId ไปยัง UserRowmanage
                                 onDelete={handleDeleteUser} // ส่ง employeeId ไปยัง UserRowmanage
+                                onStatusToggle={handleStatusToggle} // ส่งฟังก์ชันสำหรับเปลี่ยนสถานะ
                             />
                             ))
                         ) : (
                             <tr>
-                            <td colSpan="9" className="text-center py-10 text-gray-500">
+                            <td colSpan="10" className="text-center py-10 text-gray-500">
                                 {searchTerm ? `ไม่พบข้อมูลผู้ใช้งานที่ค้นหา: "${searchTerm}"` : 'ไม่พบข้อมูลผู้ใช้งาน'}
                             </td>
                             </tr>

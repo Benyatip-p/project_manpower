@@ -46,10 +46,16 @@ func CreateNewEmployee(req *models.NewEmployeeRequest) error {
 
 	query := `
 		INSERT INTO employees (
-			employee_id, first_name, last_name, email, password, pos_id, dept_id, role_id
+			employee_id, first_name, last_name, email, password, pos_id, dept_id, role_id, status
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
+
+	// Set default status if not provided
+	status := strings.TrimSpace(req.Status)
+	if status == "" {
+		status = "Active"
+	}
 
 	_, err = database.DB.Exec(query,
 		strings.TrimSpace(req.EmployeeID),
@@ -60,6 +66,7 @@ func CreateNewEmployee(req *models.NewEmployeeRequest) error {
 		sqlPosID,
 		sqlDeptID,
 		roleID,
+		status,
 	)
 
 	if err != nil {
@@ -122,6 +129,12 @@ func UpdateEmployee(employeeID string, req *models.NewEmployeeRequest) error {
     	sqlPosID,
     	sqlDeptID,
     	roleID,
+    }
+
+    // Include status if provided
+    if req.Status != "" {
+    	updateFields = append(updateFields, fmt.Sprintf("status = $%d", len(args)+1))
+    	args = append(args, strings.TrimSpace(req.Status))
     }
 
     // Include password only if it's provided

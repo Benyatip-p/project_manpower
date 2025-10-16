@@ -202,6 +202,11 @@ VALUES
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบริหาร'),
  (SELECT section_id FROM sections WHERE section_name='แผนกธุรการ'),
+ 2),
+ ('E102', 'ตะวัน', 'วันตา', 'tawan@email.com', '1234',
+ (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
+ (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
+ (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
  3);
 
 -- -- ========== 1 ==========

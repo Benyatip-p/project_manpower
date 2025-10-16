@@ -9,4 +9,5 @@ type EmployeeDetail struct {
 	LastName            string `json:"lastName"`
 	Email               string `json:"email"`
 	PasswordPlaceholder string `json:"password"`
+	Status              string `json:"status"`
 }

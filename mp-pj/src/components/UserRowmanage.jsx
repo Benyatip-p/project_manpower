@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from '@heroicons/react/solid';
 
-function UserRowmanage({ user, onEdit, onDelete }) {
+function UserRowmanage({ user, onEdit, onDelete, onStatusToggle }) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   const handleTogglePassword = () => {
@@ -51,12 +51,25 @@ function UserRowmanage({ user, onEdit, onDelete }) {
             title={isPasswordVisible ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
             type="button"
           >
-            {isPasswordVisible 
-              ? <EyeOffIcon className="w-5 h-5" /> 
+            {isPasswordVisible
+              ? <EyeOffIcon className="w-5 h-5" />
               : <EyeIcon className="w-5 h-5" />
             }
           </button>
         </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+        <button
+          onClick={() => onStatusToggle(user.employeeId, user.status)}
+          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            (user.status || 'Active') === 'Active'
+              ? 'bg-green-100 text-green-800 hover:bg-green-200'
+              : 'bg-red-100 text-red-800 hover:bg-red-200'
+          }`}
+          title={(user.status || 'Active') === 'Active' ? 'คลิกเพื่อปิดใช้งาน' : 'คลิกเพื่อเปิดใช้งาน'}
+        >
+          {(user.status || 'Active') === 'Active' ? 'ใช้งาน' : 'ไม่ใช้งาน'}
+        </button>
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
         <div className="flex items-center justify-center space-x-4">

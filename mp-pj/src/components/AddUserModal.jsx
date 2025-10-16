@@ -8,7 +8,8 @@ const INITIAL_FORM_STATE = {
   firstName: '',
   lastName: '',
   email: '',
-  password: ''
+  password: '',
+  status: 'Active'
 };
 
 function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
@@ -51,8 +52,9 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
         firstName: editingUser.firstName || '',
         lastName: editingUser.lastName || '',
         email: editingUser.email || '',
+        status: editingUser.status || 'Active',
         // ล้างรหัสผ่านเมื่อเข้าสู่โหมดแก้ไข
-        password: '' 
+        password: ''
       });
     } else {
       setFormData(INITIAL_FORM_STATE);
@@ -193,19 +195,32 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
-              <input 
-                type="password" 
-                name="password" 
-                value={formData.password} 
-                onChange={handleChange} 
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" 
-                required={!editingUser} 
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                required={!editingUser}
               />
               {editingUser && (
                 <p className="text-xs text-gray-500 mt-1">
                     ปล่อยว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน
                 </p>
               )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">สถานะ</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="Active">ใช้งาน</option>
+                <option value="Inactive">ไม่ใช้งาน</option>
+              </select>
             </div>
           </div>
 

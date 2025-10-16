@@ -63,6 +63,7 @@ func UpdateEmployeeHandler(c *gin.Context) {
         Role:       req.Role,
         Department: req.Department,
         Position:   req.Position,
+        Status:     req.Status,
     }
 
 	err := services.UpdateEmployee(employeeID, &newReq)
@@ -101,5 +102,38 @@ func DeleteEmployeeHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "Employee deleted successfully!",
+	})
+}
+
+func UpdateEmployeeStatusHandler(c *gin.Context) {
+	employeeID := c.Param("employeeID")
+	if employeeID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Employee ID is required"})
+		return
+	}
+
+	var req struct {
+		Status string `json:"status" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload", "details": err.Error()})
+		return
+	}
+
+	// Validate status value
+	if req.Status != "Active" && req.Status != "Inactive" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Status must be 'Active' or 'Inactive'"})
+		return
+	}
+
+	err := services.UpdateEmployeeStatus(employeeID, req.Status)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update employee status"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "Employee status updated successfully!",
 	})
 }

@@ -10,6 +10,7 @@ import (
 
 	"mantest/backend/internal/database"
 	"mantest/backend/internal/models"
+	"mantest/backend/internal/services"
 	mw "mantest/backend/internal/middlewares"
 
 	"github.com/gin-gonic/gin"
@@ -516,6 +517,18 @@ func DecideManpowerRequestHandler(c *gin.Context) {
 	if err := tx.Commit(); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "commit failed"})
 		return
+	}
+
+	// Send email notification to next approver if action is APPROVE
+	if action == "APPROVE" {
+		go func() {
+			nextApproverEmail, err := services.GetNextApproverEmail(reqID, newOrigin, newHR, newMgmt)
+			if err == nil && nextApproverEmail != "" {
+				if err := services.SendApprovalAssignedNotification(nextApproverEmail, docNo, reqID); err != nil {
+					log.Printf("Failed to send approval notification: %v", err)
+				}
+			}
+		}()
 	}
 
 	// JSON Response from second code block
