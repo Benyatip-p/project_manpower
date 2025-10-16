@@ -328,32 +328,36 @@ const Approve = () => {
   }, [currentUserRole]); // dependency: เมื่อ role เปลี่ยน ให้สร้างฟังก์ชันใหม่
 
    const filteredDocuments = documents.filter(doc => {
-    // กรองตามฟิลเตอร์สถานะที่ผู้ใช้เลือก
+    // กรองตามฟิลเตอร์สถานะที่ผู้ใช้เลือก (ใช้ inputStatus โดยตรง ไม่ต้องรอกด Search)
     let statusMatch = true;
     
-    if (filterStatus === 'ผ่านการอนุมัติ') {
+    // ใช้ inputStatus แทน filterStatus เพื่อให้ filter ทำงานทันทีเมื่อเลือก dropdown
+    const currentFilterStatus = inputStatus || filterStatus;
+    
+    if (currentFilterStatus === 'ผ่านการอนุมัติ') {
       // ผ่านการอนุมัติ: ทั้ง 3 คอลัมน์ต้องเป็น 'ได้รับการอนุมัติ'
       statusMatch = doc.managerStatus === 'ได้รับการอนุมัติ' && 
                     doc.hrStatus === 'ได้รับการอนุมัติ' && 
                     doc.ceoStatus === 'ได้รับการอนุมัติ';
-    } else if (filterStatus === 'รออนุมัติ') {
+    } else if (currentFilterStatus === 'รออนุมัติ') {
       // รออนุมัติ: แสดงเฉพาะเอกสารที่รอ role ปัจจุบันตัดสินใจ
       statusMatch = canApproveDocument(doc);
-    } else if (filterStatus === 'ไม่อนุมัติ') {
+    } else if (currentFilterStatus === 'ไม่อนุมัติ') {
       // ไม่อนุมัติ: คอลัมน์ใดคอลัมน์หนึ่งเป็น 'ไม่อนุมัติ'
       statusMatch = doc.managerStatus === 'ไม่อนุมัติ' || 
                     doc.hrStatus === 'ไม่อนุมัติ' || 
                     doc.ceoStatus === 'ไม่อนุมัติ';
-    } else if (filterStatus !== '') {
+    } else if (currentFilterStatus !== '') {
       // กรณีอื่นๆ: ค้นหาตามสถานะปกติ (เช่น ค้นหาคำเฉพาะ)
-      statusMatch = doc.managerStatus === filterStatus || 
-                    doc.hrStatus === filterStatus || 
-                    doc.ceoStatus === filterStatus;
+      statusMatch = doc.managerStatus === currentFilterStatus || 
+                    doc.hrStatus === currentFilterStatus || 
+                    doc.ceoStatus === currentFilterStatus;
     }
     
-    // กรองตามเลขที่เอกสาร
-    const searchMatch = filterDocNumber === '' || 
-      doc.documentNumber.toLowerCase().includes(filterDocNumber.toLowerCase());
+    // กรองตามเลขที่เอกสาร (ใช้ inputDocNumber ทันที ไม่ต้องรอกด Search)
+    const currentFilterDocNumber = inputDocNumber || filterDocNumber;
+    const searchMatch = currentFilterDocNumber === '' || 
+      doc.documentNumber.toLowerCase().includes(currentFilterDocNumber.toLowerCase());
     
     return statusMatch && searchMatch;
   });
