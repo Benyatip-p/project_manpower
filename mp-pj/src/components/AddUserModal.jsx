@@ -8,12 +8,12 @@ const INITIAL_FORM_STATE = {
   firstName: '',
   lastName: '',
   email: '',
-  password: ''
+  password: '',
+  status: 'Active'
 };
 
 function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
-  const [nextEmployeeId, setNextEmployeeId] = useState('');
   const [masterData, setMasterData] = useState({
     roles: [],
     departments: [],
@@ -27,9 +27,6 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
         if (response.ok) {
           const data = await response.json();
           
-          console.log("Master Data Received from Backend:", data);
-          console.log("Roles Array Status:", data.roles);
-
           setMasterData({
             roles: data.roles || [],
             departments: data.departments || [],
@@ -45,30 +42,6 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
     fetchMasterData();
   }, []);
 
-  // Fetch next employee ID when opening modal for adding new user
-  useEffect(() => {
-    const fetchNextEmployeeId = async () => {
-      if (!editingUser && isOpen) {
-        try {
-          const token = localStorage.getItem('token');
-          const response = await fetch('/api/admin/next-employee-id', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setNextEmployeeId(data.next_employee_id || '');
-            setFormData(prev => ({ ...prev, employeeId: data.next_employee_id || '' }));
-          }
-        } catch (error) {
-          console.error('Error fetching next employee ID:', error);
-        }
-      }
-    };
-    fetchNextEmployeeId();
-  }, [isOpen, editingUser]);
-
   useEffect(() => {
     if (editingUser) {
       setFormData({
@@ -79,7 +52,8 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
         firstName: editingUser.firstName || '',
         lastName: editingUser.lastName || '',
         email: editingUser.email || '',
-        password: editingUser.password || ''
+        status: editingUser.status || 'Active',
+        password: ''
       });
     } else {
       setFormData(INITIAL_FORM_STATE);
@@ -97,21 +71,18 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // เมื่อเพิ่มใหม่ต้องมีรหัสผ่าน แต่เมื่อแก้ไขไม่บังคับ
+    // ตรวจสอบรหัสผ่านเมื่อเพิ่มผู้ใช้งานใหม่
     if (!editingUser && !formData.password) {
-        alert('กรุณากรอกรหัสผ่าน');
+        alert('กรุณาระบุรหัสผ่านสำหรับผู้ใช้งานใหม่');
         return;
     }
-    
-    // ตรวจสอบข้อมูลที่จำเป็น (ไม่รวม employeeId เพราะ backend จะสร้างให้)
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role) {
+    // ตรวจสอบข้อมูลที่จำเป็นอื่น ๆ
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.role || !formData.employeeId) {
         alert('กรุณากรอกข้อมูลที่จำเป็นทั้งหมดให้ครบถ้วน');
         return;
     }
 
     onSave(formData);
-    onClose();
   };
 
   const handleClose = () => {
@@ -120,7 +91,10 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-[rgba(75,85,99,0.5)] backdrop-blur-lg flex justify-center items-center z-40" onClick={handleClose} style={{ backgroundColor: 'transparent' }}>
+    <div 
+        className="fixed inset-0 bg-[rgba(17,24,39,0.3)] backdrop-blur-sm flex justify-center items-center z-40" 
+        onClick={handleClose}
+    >
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg z-50" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-2xl font-bold mb-4">
           {editingUser ? 'แก้ไขข้อมูลผู้ใช้งาน' : 'เพิ่มผู้ใช้งานใหม่'}
@@ -161,34 +135,18 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
                 required 
               />
             </div>
-            {editingUser && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
-                <input 
-                  type="text" 
-                  name="employeeId" 
-                  value={formData.employeeId} 
-                  onChange={handleChange} 
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 cursor-not-allowed" 
-                  disabled={true}
-                />
-                <p className="text-xs text-gray-500 mt-1">รหัสพนักงานไม่สามารถแก้ไขได้</p>
-              </div>
-            )}
-            {!editingUser && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
-                <input 
-                  type="text" 
-                  name="employeeId" 
-                  value={nextEmployeeId} 
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 cursor-not-allowed text-gray-700" 
-                  disabled={true}
-                  readOnly
-                />
-                <p className="text-xs text-gray-500 mt-1">ระบบจะสร้างรหัสให้อัตโนมัติ (เช่น E001, E002, ...)</p>
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">รหัสพนักงาน</label>
+              <input 
+                type="text" 
+                name="employeeId" 
+                value={formData.employeeId} 
+                onChange={handleChange} 
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" 
+                required
+                disabled={!!editingUser}
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">บทบาท</label>
               <select 
@@ -233,18 +191,20 @@ function AddUserModal({ isOpen, onClose, onSave, editingUser }) {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                รหัสผ่าน {editingUser && <span className="text-xs text-gray-500">(เว้นว่างไว้หากไม่ต้องการเปลี่ยน)</span>}
-              </label>
-              <input 
-                type="password" 
-                name="password" 
-                value={formData.password} 
-                onChange={handleChange} 
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500" 
+              <label className="block text-sm font-medium text-gray-700">รหัสผ่าน</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500"
                 required={!editingUser}
-                placeholder={editingUser ? "เว้นว่างถ้าไม่ต้องการเปลี่ยน" : ""}
               />
+              {editingUser && (
+                <p className="text-xs text-gray-500 mt-1">
+                    ปล่อยว่างไว้หากไม่ต้องการเปลี่ยนรหัสผ่าน
+                </p>
+              )}
             </div>
           </div>
 
