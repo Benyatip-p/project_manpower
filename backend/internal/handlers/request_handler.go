@@ -69,7 +69,7 @@ func DeleteManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Get user info from JWT
+	// Get info from JWT
 	empID := c.GetString(mw.CtxEmployeeID)
 	deptID := c.GetInt(mw.CtxDeptID)
 	if empID == "" || deptID == 0 {
@@ -77,7 +77,6 @@ func DeleteManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Check if request exists and belongs to user's department
 	var exists bool
 	var requestDeptID int
 	err := database.DB.QueryRow(`
@@ -94,7 +93,6 @@ func DeleteManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// Only allow deletion of requests from user's own department
 	if requestDeptID != deptID {
 		c.JSON(http.StatusForbidden, gin.H{"error": "ไม่สามารถลบคำขอของแผนกอื่นได้"})
 		return
@@ -323,11 +321,9 @@ WHERE mr.request_id = $1
 
 	// กรองตาม role
 	if role == "Admin" || role == "Approve" {
-		// เห็นทั้งหมด
 		query = baseSelect
 		args = append(args, requestID)
 	} else {
-		// User: กรองตาม section หรือ department
 		if secID > 0 {
 			query = baseSelect + " AND mr.requesting_section_id = $2"
 			args = append(args, requestID, secID)
@@ -380,7 +376,6 @@ WHERE mr.request_id = $1
 		return
 	}
 
-	// แปลงสถานะสำหรับแสดงผล
 	r.DisplayStatus = mapStatusForRole(role, r.OriginStatus, r.HRStatus, r.OverallStatus)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -404,7 +399,6 @@ WHERE mr.request_id = $1
 // @Router       /user/requests/submit [post]
 func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
 	empID := c.GetString(mw.CtxEmployeeID)
-	// ไม่ต้องใช้ deptID, secID, posID จาก JWT อีกต่อไป เพราะจะใช้จาก input แทน
 	if empID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing auth claims"})
 		return
@@ -420,7 +414,6 @@ func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// target_hire_date
 	var hireDate sql.NullTime
 	if input.TargetHireDate != nil && *input.TargetHireDate != "" {
 		if t, err := time.Parse("2006-01-02", *input.TargetHireDate); err == nil {
@@ -440,7 +433,6 @@ func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
 		}
 	}()
 
-	// running doc no
 	var lastID int
 	if err = tx.QueryRow(`SELECT COALESCE(MAX(request_id),0) FROM manpower_requests`).Scan(&lastID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "doc no gen failed"})
@@ -448,7 +440,6 @@ func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
 	}
 	docNo := generateDocNo(lastID + 1)
 
-	// INSERT + set origin_status=SUBMITTED, hr_status=NONE, overall=IN_PROGRESS
 	const qInsert = `
       INSERT INTO manpower_requests (
         doc_number, employee_id, doc_date,
@@ -488,7 +479,6 @@ func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
 		return
 	}
 
-	// บันทึกประวัติการส่ง (step=0, action=SUBMIT)
 	_, err = tx.Exec(`
         INSERT INTO approval_history (request_id, approver_id, step, action, notes)
         VALUES ($1,$2,0,'SUBMIT','user submitted the request')
@@ -512,7 +502,6 @@ func CreateAndSubmitManpowerRequestHandler(c *gin.Context) {
 		"origin_status":  "SUBMITTED",
 		"hr_status":      "NONE",
 		"overall_status": "IN_PROGRESS",
-		// UI แปลสถานะฝั่งต้นสังกัด: “รอผู้จัดการแผนก”
 	})
 }
 
