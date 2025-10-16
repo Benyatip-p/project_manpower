@@ -20,7 +20,6 @@ const Usermainpage = () => {
 
   const docNumberInputRef = useRef(null);
 
-  // ฟังก์ชันแปลงสถานะตามตาราง workflow
   const mapStatusForDisplay = (originStatus, hrStatus, overallStatus) => {
     // *** เช็คกรณี REJECTED ก่อน ***
     if (overallStatus === 'REJECTED') {
@@ -149,7 +148,6 @@ const Usermainpage = () => {
       };
     }
     
-    // Default fallback
     return {
       managerStatus: originStatus || 'กำลังรอ',
       hrStatus: hrStatus || 'กำลังรอ',
@@ -182,11 +180,9 @@ const Usermainpage = () => {
         console.log("ข้อมูลที่ได้จาก API:", data);
         console.log("จำนวนรายการทั้งหมด:", data.length);
         
-        // แปลงข้อมูลจาก API ให้ตรงกับรูปแบบที่ตารางต้องการ
         const formattedData = data.map(item => {
-          console.log("Raw item from API:", item); // Debug log
+          console.log("Raw item from API:", item); 
           
-          // แปลงสถานะตามตาราง workflow
           const displayStatus = mapStatusForDisplay(
             item.origin_status, 
             item.hr_status, 
@@ -197,7 +193,7 @@ const Usermainpage = () => {
             id: item.request_id,
             documentNumber: item.doc_number || '-',
             documentDate: item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH') : '-',
-            department: item.department_name || item.dept_name || '-', // ลองทั้ง 2 field
+            department: item.department_name || item.dept_name || '-', 
             managerStatus: displayStatus.managerStatus,
             hrStatus: displayStatus.hrStatus,
             ceoStatus: displayStatus.ceoStatus,
@@ -216,7 +212,7 @@ const Usermainpage = () => {
     };
     
     fetchRequests();
-  }, [location.key, location.state?.refresh]); // เพิ่ม location.state?.refresh เป็น dependency เพื่อให้ fetch ใหม่เมื่อ navigate กลับมา
+  }, [location.key, location.state?.refresh]); 
 
   const handleSearch = () => {
     setFilterDocNumber(inputDocNumber);
@@ -243,18 +239,16 @@ const Usermainpage = () => {
   };
 
   const filteredDocuments = documents.filter(doc => {
-    // กรองตามฟิลเตอร์สถานะที่ผู้ใช้เลือก (ใช้ inputStatus โดยตรง ไม่ต้องรอกด Search)
     let statusMatch = true;
     
     console.log('=== Filter Debug ===');
-    console.log('inputStatus:', inputStatus); // เปลี่ยนจาก filterStatus เป็น inputStatus
+    console.log('inputStatus:', inputStatus); 
     console.log('filterStatus:', filterStatus);
     console.log('Doc:', doc.documentNumber);
     console.log('managerStatus:', doc.managerStatus);
     console.log('hrStatus:', doc.hrStatus);
     console.log('ceoStatus:', doc.ceoStatus);
     
-    // ใช้ inputStatus แทน filterStatus เพื่อให้ filter ทำงานทันทีเมื่อเลือก dropdown
     const currentFilterStatus = inputStatus || filterStatus;
     
     if (currentFilterStatus === 'ผ่านการอนุมัติ') {
@@ -310,14 +304,75 @@ const Usermainpage = () => {
     setCurrentPage(pageNumber);
   };
 
-  const handleDelete = (documentId, documentNumber) => {
-    if (window.confirm(`คุณต้องการลบเอกสารเลขที่ "${documentNumber}" ใช่หรือไม่?`)) {
+  const fetchRequests = async () => {
+    try {
+      console.log("เริ่มดึงข้อมูลเอกสารจาก API..."); 
+      
+      setIsLoading(true);
+      const data = await getUserRequests();
+      
+      const formattedData = data.map(item => {
+        const displayStatus = mapStatusForDisplay(
+          item.origin_status, 
+          item.hr_status, 
+          item.overall_status
+        );
+        
+        return {
+          id: item.request_id,
+          documentNumber: item.doc_number || '-',
+          documentDate: item.created_at ? new Date(item.created_at).toLocaleDateString('th-TH') : '-',
+          department: item.department_name || item.dept_name || '-',
+          managerStatus: displayStatus.managerStatus,
+          hrStatus: displayStatus.hrStatus,
+          ceoStatus: displayStatus.ceoStatus,
+          dueDate: item.target_hire_date ? new Date(item.target_hire_date).toLocaleDateString('th-TH') : '-',
+        };
+      });
+      
+      setDocuments(formattedData);
+      setIsLoading(false);      
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
+      setIsLoading(false);
+      alert("ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
+    }
+  };
+
+  const handleDelete = async (documentId, documentNumber) => {
+    if (!window.confirm(`คุณต้องการลบเอกสารเลขที่ "${documentNumber}" ใช่หรือไม่?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('ไม่พบข้อมูลการเข้าสู่ระบบ กรุณาเข้าสู่ระบบใหม่');
+      }
+
       console.log(`กำลังส่งคำขอลบเอกสาร ID: ${documentId} ไปยังเซิร์ฟเวอร์...`);
       
-      setDocuments(currentDocuments =>
-        currentDocuments.filter(doc => doc.id !== documentId)
-      );
-      alert(`เอกสาร "${documentNumber}" ถูกลบเรียบร้อยแล้ว`);
+      const response = await fetch(`http://localhost:8080/api/user/requests/${documentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'ไม่สามารถลบเอกสารได้');
+      }
+      
+      alert('ลบเอกสารเรียบร้อยแล้ว');
+      
+      // ดึงข้อมูลใหม่ทันทีหลังจากลบสำเร็จ
+      await fetchRequests();
+      
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert(error.message);
     }
   };
 

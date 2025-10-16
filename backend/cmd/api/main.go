@@ -75,6 +75,7 @@ func main() {
 
 				user.POST("/requests/submit", handlers.CreateAndSubmitManpowerRequestHandler)
 				user.POST("/requests/:id/decide", handlers.DecideManpowerRequestHandler)
+				user.DELETE("/requests/:id", handlers.DeleteManpowerRequestHandler)
 			}
 
 			// approve := protected.Group("/approve")

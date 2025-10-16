@@ -195,31 +195,31 @@ VALUES
 
 INSERT INTO employees (employee_id, first_name, last_name, email, password, pos_id, dept_id, section_id, role_id)
 VALUES
-('E101', 'สมศักดิ์', 'ขยันยิ่ง', 'som@example.com', '1234',
+('E008', 'สมศักดิ์', 'ขยันยิ่ง', 'som@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายผลิต'),
  (SELECT section_id FROM sections WHERE section_name='แผนกผลิต'),
  3),
 
-('E102', 'สมหญิง', 'รักงาน', 'somying@example.com', '1234',
+('E009', 'สมหญิง', 'รักงาน', 'somying@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายการตลาด'),
  (SELECT section_id FROM sections WHERE section_name='แผนกการตลาด'),
  3),
 
-('E103', 'มานี', 'มีนา', 'manee@example.com', '1234',
+('E010', 'มานี', 'มีนา', 'manee@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายบัญชี'),
  (SELECT section_id FROM sections WHERE section_name='แผนกบัญชี'),
  3),
 
-('E104', 'เอกชัย', 'เจริญสุข', 'ekachai@example.com', '1234',
+('E011', 'เอกชัย', 'เจริญสุข', 'ekachai@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายทรัพยากรบุคคล'),
  (SELECT section_id FROM sections WHERE section_name='แผนกบุคคล'),
  3),
 
-('E105', 'วิทวัส', 'เก่งกาจ', 'witwat@example.com', '1234',
+('E012', 'วิทวัส', 'เก่งกาจ', 'witwat@example.com', '1234',
  (SELECT pos_id FROM positions WHERE pos_name='พนักงานทั่วไป'),
  (SELECT dept_id FROM departments WHERE dept_name='ฝ่ายเทคโนโลยีสารสนเทศ'),
  (SELECT section_id FROM sections WHERE section_name='แผนกไอที'),

@@ -49,6 +49,69 @@ type CreateManpowerRequestInput struct {
 	TargetHireDate        *string `json:"target_hire_date"` // รูปแบบ YYYY-MM-DD
 }
 
+// DeleteManpowerRequestHandler godoc
+// @Summary      Delete manpower request
+// @Description  ลบใบคำขออัตรากำลังตาม ID
+// @Tags         Requests
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id   path      int  true  "Request ID"
+// @Success      200  {object}  map[string]string
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /user/requests/{id} [delete]
+func DeleteManpowerRequestHandler(c *gin.Context) {
+	requestID := c.Param("id")
+	if requestID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Request ID is required"})
+		return
+	}
+
+	// Get user info from JWT
+	empID := c.GetString(mw.CtxEmployeeID)
+	deptID := c.GetInt(mw.CtxDeptID)
+	if empID == "" || deptID == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing auth claims"})
+		return
+	}
+
+	// Check if request exists and belongs to user's department
+	var exists bool
+	var requestDeptID int
+	err := database.DB.QueryRow(`
+		SELECT EXISTS(SELECT 1 FROM manpower_requests WHERE request_id = $1),
+		       (SELECT requesting_dept_id FROM manpower_requests WHERE request_id = $1)
+	`, requestID).Scan(&exists, &requestDeptID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Request not found"})
+		return
+	}
+
+	// Only allow deletion of requests from user's own department
+	if requestDeptID != deptID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "ไม่สามารถลบคำขอของแผนกอื่นได้"})
+		return
+	}
+
+	// Delete the request
+	_, err = database.DB.Exec(`DELETE FROM manpower_requests WHERE request_id = $1`, requestID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Request deleted successfully",
+	})
+}
+
 // GetManpowerRequestsHandler godoc
 // @Summary      Get all manpower requests
 // @Description  ดึงรายการ manpower requests ตามสิทธิ์ (Admin/Approve เห็นทั้งหมด, User เห็นเฉพาะกอง/แผนกตัวเอง)
