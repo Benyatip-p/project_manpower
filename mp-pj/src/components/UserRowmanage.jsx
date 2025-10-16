@@ -3,14 +3,20 @@ import { EyeIcon, EyeOffIcon, PencilIcon, TrashIcon } from '@heroicons/react/sol
 
 function UserRowmanage({ user, onEdit, onDelete, onStatusToggle }) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const handleTogglePassword = () => {
     if (isPasswordVisible) {
       setIsPasswordVisible(false);
       return;
     }
+    if (isAuthenticated) {
+      setIsPasswordVisible(true);
+      return;
+    }
     const code = window.prompt('Enter admin code to view password');
     if (code === 'imadmin') {
+      setIsAuthenticated(true);
       setIsPasswordVisible(true);
     } else if (code !== null) {
       window.alert('Incorrect code');

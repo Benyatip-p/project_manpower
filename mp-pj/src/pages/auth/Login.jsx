@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 1. Import useEffect
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
@@ -8,6 +8,15 @@ const Login = () => {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  // 2. เพิ่ม useEffect เพื่อดึงข้อมูลอีเมลที่จำไว้เมื่อคอมโพเนนต์โหลด
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('remembered_email');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []); // [] ทำให้ useEffect ทำงานแค่ครั้งเดียวตอน component mount
 
   const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
@@ -33,13 +42,42 @@ const Login = () => {
         return;
       }
 
-      // Clear localStorage ก่อน login เพื่อให้แน่ใจว่าไม่มี token เก่า
-      localStorage.clear();
+      // 3. เพิ่ม Logic การจัดการ "Remember Me"
+      // ต้องทำ *ก่อน* clear localStorage เพื่อให้สามารถลบของเก่าได้
+      // และทำ *หลัง* clear localStorage เพื่อบันทึกของใหม่
+      // ในกรณีนี้ โค้ดของคุณมี localStorage.clear() ซึ่งจะลบทุกอย่าง
+      // ดังนั้นเราจะบันทึกอีเมลหลังจากที่เคลียร์และตั้งค่า token ใหม่แล้ว
+      if (rememberMe) {
+        localStorage.setItem('remembered_email', email);
+      } else {
+        localStorage.removeItem('remembered_email');
+      }
+
+      // โค้ดเดิม: Clear localStorage ก่อน login เพื่อให้แน่ใจว่าไม่มี token เก่า
+      // หมายเหตุ: การใช้ clear() จะลบ 'remembered_email' ไปด้วยถ้าเราตั้งค่าก่อนหน้านี้
+      // ดังนั้น ลำดับที่ถูกต้องคือ Clear -> Set Token -> Set Remember Me
       
-      const { token, role, email: userEmail } = data; 
+      // เราจะปรับลำดับเล็กน้อยเพื่อความถูกต้อง
+      const rememberedEmailBeforeClear = localStorage.getItem('remembered_email');
+      localStorage.clear(); // เคลียร์ทุกอย่างตามโค้ดเดิม
+      if (rememberedEmailBeforeClear) {
+          localStorage.setItem('remembered_email', rememberedEmailBeforeClear); // นำอีเมลที่จำไว้กลับมา
+      }
+
+
+      const { token, role, email: userEmail } = data;
       localStorage.setItem('token', token);
       localStorage.setItem('user_role', role);
-      localStorage.setItem('userEmail', userEmail); 
+      localStorage.setItem('userEmail', userEmail);
+
+      // จัดการ "Remember Me" หลังจากตั้งค่า session ใหม่แล้ว
+      if (rememberMe) {
+        localStorage.setItem('remembered_email', email);
+      } else {
+        // ถ้าผู้ใช้ยกเลิกการจำอีเมล ให้ลบออกจาก localStorage
+        localStorage.removeItem('remembered_email');
+      }
+
 
       switch (role.toLowerCase()) {
         case 'admin':
